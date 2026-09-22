@@ -106,7 +106,13 @@ function collectProductLinks($, baseUrl) {
     }
   }
 
-  // 2) จาก <a> ที่ชี้ไปหน้าสินค้า — ครอบคลุมรูปแบบ URL ที่พบบ่อยในร้านไทย
+  // 2) ReadyPlanet (แพลตฟอร์มที่ rodlifestore.com ใช้) วางสินค้าไว้ใน li.product-card
+  $('li.product-card a[href*="/product/"]').each((_, el) => {
+    const abs = absolute($(el).attr('href'), baseUrl)
+    if (abs) links.add(abs.split('#')[0])
+  })
+
+  // 3) จาก <a> ที่ชี้ไปหน้าสินค้า — ครอบคลุมรูปแบบ URL ที่พบบ่อยในร้านไทย
   const patterns = [/\/product\//i, /\/products\//i, /\/item\//i, /\/p\//i, /[?&]product_id=/i]
   $('a[href]').each((_, el) => {
     const abs = absolute($(el).attr('href'), baseUrl)
@@ -116,6 +122,49 @@ function collectProductLinks($, baseUrl) {
   return [...links]
 }
 
+/**
+ * อ่านข้อมูลจากการ์ดสินค้าในหน้าหมวดหมู่โดยตรง
+ * บางแพลตฟอร์ม (เช่น ReadyPlanet) เรนเดอร์ราคาในหน้าสินค้าด้วย JavaScript
+ * ทำให้ดึงจาก HTML ดิบไม่ได้ แต่หน้าหมวดหมู่มีราคาครบอยู่แล้ว
+ */
+function parseCategoryCards($, baseUrl) {
+  const cards = []
+  $('li.product-card, .product-card').each((_, el) => {
+    const $el = $(el)
+    const url = absolute($el.find('a[href*="/product/"]').attr('href'), baseUrl)
+    const name = $el.find('.product-name').text().replace(/\s+/g, ' ').trim()
+    if (!url || !name) return
+    const special = parsePrice($el.find('.product-price-special').text())
+    const original = parsePrice($el.find('.product-price-original').text())
+    const $img = $el.find('img').first()
+    const image = absolute($img.attr('data-src') || $img.attr('src'), baseUrl)
+    cards.push({
+      url, name, image,
+      // ถ้ามีทั้งราคาพิเศษและราคาเดิม ให้ราคาเดิมเป็นราคาเต็ม
+      price: original && special && special < original ? original : special ?? original,
+      salePrice: original && special && special < original ? special : null,
+    })
+  })
+  return cards
+}
+
+/**
+ * อ่านคำบรรยายสินค้าแบบ ReadyPlanet
+ * โครงสร้างคือ .product-description-area > div.description หลายก้อน
+ * ก้อนแรกเป็นบรรทัด "รหัสสินค้า : XXX" และมีกล่องสั่งซื้อ (.product-detail-bottom)
+ * คั่นกลาง จึงต้องคัดเฉพาะก้อนที่เป็นคำบรรยายจริง
+ */
+function readyPlanetDescription($) {
+  const parts = []
+  $('.product-description-area .description').each((_, el) => {
+    const text = $(el).text().replace(/\s+/g, ' ').trim()
+    if (!text) return
+    if (/^รหัสสินค้า\s*:/.test(text)) return
+    parts.push(text)
+  })
+  return parts.join('\n\n').slice(0, 1500)
+}
+
 /** อ่านรายละเอียดสินค้าจากหน้าสินค้าหนึ่งหน้า */
 function parseProduct($, url) {
   const product = jsonLdBlocks($).find((n) => typeOf(n).includes('Product'))
@@ -123,6 +172,7 @@ function parseProduct($, url) {
   // ชื่อสินค้า
   const name =
     product?.name ||
+    $('.product-title').first().text().replace(/\s+/g, ' ').trim() ||
     $('meta[property="og:title"]').attr('content') ||
     $('h1').first().text().trim() ||
     $('title').text().trim()
@@ -134,12 +184,14 @@ function parseProduct($, url) {
 
   // ราคาเต็มที่ถูกขีดฆ่า มักอยู่ใน <del>, <s> หรือ class ที่มีคำว่า old/original/regular
   const strike = parsePrice(
-    $('del, s, .price-old, .old-price, .original-price, .regular-price, [class*="price-before"]')
+    $('del, s, .price-old, .old-price, .original-price, .regular-price, ' +
+      '.product-price-original, .product-detail-price-original:not(.no-special-price), [class*="price-before"]')
       .first()
       .text(),
   )
   const shown = parsePrice(
-    $('.price-new, .new-price, .sale-price, .special-price, [class*="price-now"], [itemprop="price"]')
+    $('.price-new, .new-price, .sale-price, .special-price, ' +
+      '.product-price-special, .product-detail-price, [class*="price-now"], [itemprop="price"]')
       .first()
       .text(),
   )
@@ -158,6 +210,7 @@ function parseProduct($, url) {
     product?.description ||
     $('meta[property="og:description"]').attr('content') ||
     $('meta[name="description"]').attr('content') ||
+    readyPlanetDescription($) ||
     $('[class*="description"], [id*="description"]').first().text().trim().slice(0, 1500) ||
     ''
 
@@ -171,7 +224,7 @@ function parseProduct($, url) {
   }
   const og = absolute($('meta[property="og:image"]').attr('content'), url)
   if (og) images.add(og)
-  $('[class*="gallery"] img, [class*="thumb"] img, [id*="gallery"] img, .product-image img').each((_, el) => {
+  $('.product-images-area img, [class*="gallery"] img, [class*="thumb"] img, [id*="gallery"] img, .product-image img').each((_, el) => {
     const $el = $(el)
     const raw = $el.attr('data-src') || $el.attr('data-original') || $el.attr('src')
     const abs = absolute(raw, url)
@@ -179,9 +232,12 @@ function parseProduct($, url) {
     if (abs && !/placeholder|loading|blank|spinner/i.test(abs)) images.add(abs)
   })
 
+  // ReadyPlanet แสดงรหัสสินค้าเป็นข้อความ "รหัสสินค้า : XXX" ในส่วนรายละเอียด
+  const skuFromText = $('body').text().replace(/\s+/g, ' ').match(/รหัสสินค้า\s*:?\s*([A-Za-z0-9._-]{3,30})/)?.[1]
+
   return {
     name: String(name ?? '').trim(),
-    sku: String(product?.sku ?? product?.mpn ?? '').trim(),
+    sku: String(product?.sku ?? product?.mpn ?? skuFromText ?? '').trim(),
     category: (FORCED_CATEGORY ?? product?.category ?? '').trim(),
     description: String(description).replace(/\s+/g, ' ').trim(),
     price,
@@ -237,9 +293,13 @@ const categoryName =
   $cat('meta[property="og:title"]').attr('content')?.trim() ||
   'สินค้านำเข้า'
 
-const links = collectProductLinks($cat, categoryUrl).slice(0, LIMIT)
+// ราคาจากหน้าหมวดหมู่เชื่อถือได้กว่า เพราะบางแพลตฟอร์มเรนเดอร์ราคาในหน้าสินค้าด้วย JS
+const cards = parseCategoryCards($cat, categoryUrl)
+const cardByUrl = new Map(cards.map((c) => [c.url, c]))
+
+const links = (cards.length > 0 ? cards.map((c) => c.url) : collectProductLinks($cat, categoryUrl)).slice(0, LIMIT)
 console.log(`หมวดหมู่: ${categoryName}`)
-console.log(`พบลิงก์สินค้า ${links.length} รายการ`)
+console.log(`พบลิงก์สินค้า ${links.length} รายการ` + (cards.length > 0 ? ` (อ่านราคาจากการ์ดในหน้าหมวดหมู่)` : ''))
 
 if (DEBUG) {
   console.log('\n--- ลิงก์ที่เจอ ---')
@@ -259,6 +319,17 @@ for (const [i, link] of links.entries()) {
     process.stdout.write(`  [${i + 1}/${links.length}] ${link} ... `)
     const html = await fetchHtml(link)
     const parsed = parseProduct(cheerio.load(html), link)
+    const card = cardByUrl.get(link)
+
+    // ให้ข้อมูลจากการ์ดในหน้าหมวดหมู่ชนะเรื่องชื่อและราคา
+    if (card) {
+      parsed.name = card.name || parsed.name
+      if (card.price) {
+        parsed.price = card.price
+        parsed.salePrice = card.salePrice
+      }
+      if (card.image && !parsed.images.includes(card.image)) parsed.images.unshift(card.image)
+    }
 
     if (!parsed.name || !parsed.price) {
       console.log('ข้าม (อ่านชื่อหรือราคาไม่ได้)')

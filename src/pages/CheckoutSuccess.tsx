@@ -5,9 +5,9 @@ import { AddressView } from '../components/AddressFields'
 import { Badge, ButtonLink, Card, EmptyState } from '../components/ui'
 import { CheckIcon } from '../components/Icons'
 import { useOrders } from '../store/AppStore'
-import { asset } from '../lib/asset'
 import { baht, thaiDateTime } from '../lib/format'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_TONE, PAYMENT_LABEL } from '../lib/orderStatus'
+import { Img } from '../components/Img'
 
 export function CheckoutSuccess() {
   const { orderId = '' } = useParams()
@@ -72,7 +72,7 @@ export function CheckoutSuccess() {
                   to={`/product/${line.productId}`}
                   className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-gp-line"
                 >
-                  <img src={asset(line.image)} alt="" className="h-full w-full object-cover" />
+                  <Img src={line.image} alt="" className="h-full w-full object-cover" />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-sm font-semibold text-gp-ink">{line.name}</p>

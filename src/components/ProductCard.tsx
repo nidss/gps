@@ -1,10 +1,10 @@
 // ── กล่องสินค้า ใช้ทั้งหน้าแรกและหน้ารายการสินค้า ────────────────────
 import { Link } from 'react-router-dom'
 import type { Product } from '../types'
-import { asset } from '../lib/asset'
 import { baht, discountPercent, effectivePrice } from '../lib/format'
 import { useCart } from '../store/AppStore'
 import { Badge, Button } from './ui'
+import { Img } from './Img'
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart()
@@ -15,8 +15,8 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-lg border border-gp-line bg-white transition-shadow hover:shadow-xl">
       <Link to={`/product/${product.id}`} className="relative block aspect-square overflow-hidden bg-gp-surface">
-        <img
-          src={asset(product.images[0])}
+        <Img
+          src={product.images[0]}
           alt={product.name}
           loading="lazy"
           width={800}

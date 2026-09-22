@@ -1,9 +1,16 @@
-// ── รายการสินค้าตั้งต้นของร้าน ──────────────────────────────────────
-// ไฟล์นี้ถูกสร้างทับได้ด้วย `node scripts/scrape-products.mjs <url>`
-// ถ้าต้องการดึงสินค้าจากร้านเดิมเข้ามาแทนข้อมูลตัวอย่าง
+// ── รายการสินค้าของร้าน ─────────────────────────────────────────────
+// ที่มา: https://www.rodlifestore.com/category/286464 (หมวด ROD)
+// ดึงข้อมูลจากไฟล์ HTML ที่บันทึกไว้ เมื่อ 2026-09-22
+//
+// สิ่งที่เป็นข้อมูลจริงจากร้าน: ชื่อสินค้า ราคาเต็ม ราคาลด และรูปภาพ
+// สิ่งที่ยังเป็นข้อมูลชั่วคราว รอแทนที่ด้วยของจริง:
+//   - คำบรรยายสินค้าที่มีคอมเมนต์ TODO (มีหน้าสินค้าจริงมาแค่ 1 หน้า)
+//   - จำนวนสต็อกทุกชิ้น (ตั้งไว้ 50 เท่ากันหมด)
+//   - รหัสสินค้าที่ขึ้นต้นด้วย ROD- (สร้างจากเลขสินค้าในลิงก์ ไม่ใช่ SKU จริง)
+//
+// รูปภาพชี้ไปที่ CDN ของร้านเดิมโดยตรง ถ้าต้องการเก็บรูปไว้ในโปรเจกต์
+// ให้รัน: node scripts/scrape-products.mjs "https://www.rodlifestore.com/category/286464"
 import type { Product } from '../types'
-
-const img = (name: string) => `images/products/${name}`
 
 /** เลื่อนวันจากวันนี้แล้วคืนค่าเป็น ISO timestamp (ใช้เป็นวันที่เพิ่มสินค้า) */
 function isoOffset(days: number, hour = 10): string {
@@ -15,99 +22,93 @@ function isoOffset(days: number, hour = 10): string {
 
 export const seedProducts: Product[] = [
   {
-    id: 'p01', slug: 'team-polo', name: 'เสื้อโปโลทีมแข่ง Grandprix 2026', sku: 'GP-101',
+    id: 'p01', slug: 'rod-1232648', name: 'เสื้อยืด ROD สีขาว สกรีน 2 สี', sku: 'PMDB2022-S001',
     category: 'เสื้อผ้า',
     description:
-      'เสื้อโปโลทีมแข่งรุ่นทางการประจำฤดูกาล 2026 ตัดเย็บจากผ้าพิเก้ระบายอากาศดี น้ำหนักเบา แห้งเร็ว ปักโลโก้ทีมที่อกซ้ายและแขนขวา พร้อมแถบลายธงตราหมากรุกที่ปลายแขน สวมใส่สบายทั้งวันสนาม\n\nมีให้เลือกไซซ์ S ถึง 3XL ซักเครื่องได้ สีไม่ตก',
-    images: [img('polo-1.svg'), img('polo-2.svg'), img('polo-3.svg')],
-    price: 1590, salePrice: 1290, stock: 48, recommended: true, active: true, createdAt: isoOffset(-60),
+      'เสื้อยืดคอกลม ROD ผลิตจากเนื้อผ้าซูปเปอร์ดราย ช่วยให้สวมใส่สบาย ระบายอากาศได้ดี ไม่ร้อน ไม่เหนอะหนะ และไม่เสียทรง',
+    images: ['https://shop-image.readyplanet.com/kKovFSOTipw9p3gZhyVNpvj63FU=/500x500/af36057e92a140b09f19601ad53d9526', 'https://shop-image.readyplanet.com/Td6u7qb1OxfzccfLfLkboAFEk3I=/500x500/5f19f53f90624bee8b1307a1312e34ba', 'https://shop-image.readyplanet.com/2J0g8KkAzO9FMC2cSNS0no9-NB4=/500x500/ad9218b5a9ce4d978cb00f42922a4b1c', 'https://shop-image.readyplanet.com/jr-YjPE3-VdkW93jVJM1V_5wYCE=/500x500/f3c5f330acf34773bf12db4185d428f8'],
+    price: 450, salePrice: 350, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-1),
   },
   {
-    id: 'p02', slug: 'racing-cap', name: 'หมวกแก๊ปทีมแข่ง รุ่นนักขับ', sku: 'GP-102',
+    id: 'p02', slug: 'rod-1232645', name: 'เสื้อยืด ROD สีขาว สกรีน 1 สี', sku: 'ROD-1232645',
+    category: 'เสื้อผ้า',
+    description:
+      'เสื้อยืดคอกลม ROD ผลิตจากเนื้อผ้าซูปเปอร์ดราย ช่วยให้สวมใส่สบาย ระบายอากาศได้ดี ไม่ร้อน ไม่เหนอะหนะ และไม่เสียทรง',
+    images: ['https://shop-image.readyplanet.com/auCb6dkHaO6eU_2Fdolk1K6XbHQ=/500x500/09cf9f3dbbae43bbb7e88168309605fa'],
+    price: 450, salePrice: 350, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-2),
+  },
+  {
+    id: 'p03', slug: 'rod-1232643', name: 'เสื้อยืด ROD สีดำ สกรีน 1 สี', sku: 'ROD-1232643',
+    category: 'เสื้อผ้า',
+    description:
+      'เสื้อยืดคอกลม ROD ผลิตจากเนื้อผ้าซูปเปอร์ดราย ช่วยให้สวมใส่สบาย ระบายอากาศได้ดี ไม่ร้อน ไม่เหนอะหนะ และไม่เสียทรง',
+    images: ['https://shop-image.readyplanet.com/FkWFW9JJE4UeaGZG9OiRbyB0CxQ=/500x500/2f44f507e0f745a88d443d6897391749'],
+    price: 450, salePrice: 350, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-3),
+  },
+  {
+    id: 'p04', slug: 'rod-1232655', name: 'หมวก ROD สีน้ำเงินกรมท่า', sku: 'ROD-1232655',
     category: 'หมวกและกระเป๋า',
     description:
-      'หมวกแก๊ป 6 ชิ้นทรงคลาสสิกเหมือนที่นักขับใส่บนโพเดียม ปักนูนโลโก้ด้านหน้า ปรับขนาดด้านหลังด้วยตัวล็อกโลหะ ซับในดูดซับเหงื่อ\n\nฟรีไซซ์ ปรับได้รอบศีรษะ 55–60 ซม.',
-    images: [img('cap-1.svg'), img('cap-2.svg'), img('cap-3.svg')],
-    price: 890, salePrice: 690, stock: 120, recommended: true, active: true, createdAt: isoOffset(-58),
+      'หมวกแก๊ป ROD สีน้ำเงินกรมท่า ปักโลโก้ ROD ด้านหน้า ปรับขนาดได้ด้านหลัง',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/aVA9z3QLggdvT3ILQGR3onyLU-0=/500x500/4d5987be01cf4f50a02b3880142005bb'],
+    price: 550, salePrice: 350, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-4),
   },
   {
-    id: 'p03', slug: 'graphic-tee', name: 'เสื้อยืดลายรถแข่ง Limited Edition', sku: 'GP-103',
-    category: 'เสื้อผ้า',
-    description:
-      'เสื้อยืดคอกลมผ้าคอตตอน 100% พิมพ์ลายรถแข่งเต็มหลังด้วยระบบ DTG สีคมชัด ทนการซัก ผลิตจำนวนจำกัดเฉพาะฤดูกาลนี้เท่านั้น',
-    images: [img('tee-1.svg'), img('tee-2.svg'), img('tee-3.svg')],
-    price: 790, salePrice: null, stock: 86, recommended: true, active: true, createdAt: isoOffset(-50),
-  },
-  {
-    id: 'p04', slug: 'pit-jacket', name: 'แจ็กเก็ตทีมพิทครู กันลม', sku: 'GP-104',
-    category: 'เสื้อผ้า',
-    description:
-      'แจ็กเก็ตทีมพิทครูตัวจริง ผ้าสองชั้นกันลมกันละอองน้ำ ซิปยาวตลอดตัว กระเป๋าข้างมีซิป ปักโลโก้สปอนเซอร์รอบตัว เหมาะกับสภาพอากาศสนามกลางคืน',
-    images: [img('jacket-1.svg'), img('jacket-2.svg'), img('jacket-3.svg')],
-    price: 3290, salePrice: 2590, stock: 24, recommended: true, active: true, createdAt: isoOffset(-45),
-  },
-  {
-    id: 'p05', slug: 'keychain', name: 'พวงกุญแจโลหะรูปรถแข่ง', sku: 'GP-105',
-    category: 'ของที่ระลึก',
-    description:
-      'พวงกุญแจโลหะชุบเงาขัดมัน ขึ้นรูปเป็นรถแข่งสามมิติ ด้านหลังสลักโลโก้ Grandprix พร้อมกล่องของขวัญ เหมาะเป็นของฝาก',
-    images: [img('keychain-1.svg'), img('keychain-2.svg'), img('keychain-3.svg')],
-    price: 350, salePrice: 259, stock: 200, recommended: true, active: true, createdAt: isoOffset(-40),
-  },
-  {
-    id: 'p06', slug: 'tumbler', name: 'แก้วเก็บความเย็นสแตนเลส 600 มล.', sku: 'GP-106',
-    category: 'ของใช้',
-    description:
-      'แก้วสแตนเลสสองชั้นสุญญากาศ เก็บความเย็นได้นาน 12 ชั่วโมง เก็บความร้อน 6 ชั่วโมง ฝาเกลียวกันหก พ่นสีแบรนด์พร้อมโลโก้เลเซอร์',
-    images: [img('tumbler-1.svg'), img('tumbler-2.svg'), img('tumbler-3.svg')],
-    price: 1190, salePrice: 950, stock: 64, recommended: true, active: true, createdAt: isoOffset(-38),
-  },
-  {
-    id: 'p07', slug: 'diecast-143', name: 'โมเดลรถแข่ง Diecast สเกล 1:43', sku: 'GP-107',
-    category: 'ของสะสม',
-    description:
-      'โมเดลรถแข่งไดคาสต์สเกล 1:43 รายละเอียดสูง ลายสปอนเซอร์ตรงตามรถแข่งจริงประจำฤดูกาล ฐานอะคริลิกใสพร้อมป้ายชื่อนักขับ ผลิตจำนวนจำกัด',
-    images: [img('diecast-1.svg'), img('diecast-2.svg'), img('diecast-3.svg')],
-    price: 2490, salePrice: 1990, stock: 18, recommended: true, active: true, createdAt: isoOffset(-35),
-  },
-  {
-    id: 'p08', slug: 'umbrella', name: 'ร่มพับทีมแข่ง กันยูวี', sku: 'GP-108',
-    category: 'ของใช้',
-    description:
-      'ร่มพับ 3 ตอน ผ้าเคลือบกันยูวี UPF 50+ โครงไฟเบอร์กลาสทนลม เปิด-ปิดอัตโนมัติ พร้อมซองใส่สีเดียวกัน พกติดกระเป๋าไปสนามได้สะดวก',
-    images: [img('umbrella-1.svg'), img('umbrella-2.svg'), img('umbrella-3.svg')],
-    price: 690, salePrice: null, stock: 95, recommended: false, active: true, createdAt: isoOffset(-30),
-  },
-  {
-    id: 'p09', slug: 'sling-bag', name: 'กระเป๋าสะพายข้างทีมแข่ง', sku: 'GP-109',
+    id: 'p05', slug: 'rod-1232656', name: 'หมวก ROD สีขาว', sku: 'ROD-1232656',
     category: 'หมวกและกระเป๋า',
     description:
-      'กระเป๋าสะพายข้างผ้าโพลีเอสเตอร์กันน้ำ ช่องหลักใส่ของได้จุ ช่องหน้ามีซิปสำหรับมือถือและกระเป๋าสตางค์ สายปรับระดับได้ แผ่นสะท้อนแสงด้านหน้า',
-    images: [img('bag-1.svg'), img('bag-2.svg'), img('bag-3.svg')],
-    price: 1290, salePrice: 990, stock: 42, recommended: true, active: true, createdAt: isoOffset(-28),
+      'หมวกแก๊ป ROD สีขาว ปักโลโก้ ROD ด้านหน้า ปรับขนาดได้ด้านหลัง',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/TpXSNCLQ6PHOhg8AOQdi0BK9zzE=/500x500/75bcf60b01644897be8efa878b974750'],
+    price: 550, salePrice: 350, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-5),
   },
   {
-    id: 'p10', slug: 'race-gloves', name: 'ถุงมือขับรถ รุ่นซ้อม', sku: 'GP-110',
-    category: 'อุปกรณ์',
+    id: 'p06', slug: 'rod-1232657', name: 'กระเป๋าผ้า ROD สกรีน 2 สี', sku: 'ROD-1232657',
+    category: 'หมวกและกระเป๋า',
     description:
-      'ถุงมือขับรถหนังสังเคราะห์ผสมผ้ายืด ฝ่ามือปั๊มลายกันลื่น ตะเข็บเย็บสองชั้น ระบายอากาศที่หลังมือ เหมาะกับการซ้อมและขับสนาม',
-    images: [img('gloves-1.svg'), img('gloves-2.svg'), img('gloves-3.svg')],
-    price: 1590, salePrice: null, stock: 30, recommended: false, active: true, createdAt: isoOffset(-24),
+      'กระเป๋าผ้า ROD สกรีนลาย 2 สี ใช้ใส่ของใช้ประจำวันหรือเป็นถุงผ้าลดโลกร้อน',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/Kx_S2DxaMMKlZHvrCTyemJ0UDkg=/500x500/99aa7eeaab2c4d7589beeaa91014c828'],
+    price: 900, salePrice: 500, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-6),
   },
   {
-    id: 'p11', slug: 'fan-scarf', name: 'ผ้าพันคอเชียร์ทีม', sku: 'GP-111',
+    id: 'p07', slug: 'rod-1232659', name: 'กระเป๋าผ้า ROD สกรีน 1 สี', sku: 'ROD-1232659',
+    category: 'หมวกและกระเป๋า',
+    description:
+      'กระเป๋าผ้า ROD สกรีนลาย 1 สี ใช้ใส่ของใช้ประจำวันหรือเป็นถุงผ้าลดโลกร้อน',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/chJ9dI6H4Im-T0lZXHhP9x4QfOE=/500x500/a9b2b8ad84e74e6a9b59306eec66875a'],
+    price: 900, salePrice: 500, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-7),
+  },
+  {
+    id: 'p08', slug: 'rod-1232661', name: 'แก้วเก็บความร้อน/เย็น ROD x Lock & Lock', sku: 'ROD-1232661',
+    category: 'ของใช้',
+    description:
+      'แก้วเก็บความร้อน/เย็น ROD x Lock & Lock รุ่นพิเศษจากความร่วมมือระหว่าง ROD และ Lock & Lock',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/yf3csD59r_Qm5kFdAdrsG7PQkS0=/500x500/ac1ea8332b8b43bab06f9046da92d607'],
+    price: 750, salePrice: 600, stock: 50,
+    recommended: true, active: true, createdAt: isoOffset(-8),
+  },
+  {
+    id: 'p09', slug: 'rod-1232686', name: 'ร่มกลับด้าน ROD', sku: 'ROD-1232686',
+    category: 'ของใช้',
+    description:
+      'ร่มกลับด้าน ROD พับเก็บแบบกลับด้าน ช่วยไม่ให้น้ำหยดเลอะเวลาเก็บร่มในรถ',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/DPgj0oExoyDRAGC3CDuknbVAVm8=/500x500/9b85f6dc99b24b46901b120ee9b11649'],
+    price: 580, salePrice: 450, stock: 50,
+    recommended: false, active: true, createdAt: isoOffset(-9),
+  },
+  {
+    id: 'p10', slug: 'rod-1232690', name: 'แลนยาร์ดพร้อมขวดสเปรย์', sku: 'ROD-1232690',
     category: 'ของที่ระลึก',
     description:
-      'ผ้าพันคอถักลายทีมสองด้าน เนื้อนุ่มไม่คัน ปลายทั้งสองข้างมีพู่ ยาว 140 ซม. เหมาะสำหรับเชียร์ในสนามและเก็บสะสม',
-    images: [img('scarf-1.svg'), img('scarf-2.svg'), img('scarf-3.svg')],
-    price: 590, salePrice: 450, stock: 150, recommended: false, active: true, createdAt: isoOffset(-20),
-  },
-  {
-    id: 'p12', slug: 'sticker-set', name: 'ชุดสติกเกอร์ทีมแข่ง 24 ชิ้น', sku: 'GP-112',
-    category: 'ของที่ระลึก',
-    description:
-      'ชุดสติกเกอร์ไวนิลกันน้ำ 24 ลาย ทั้งโลโก้ทีม หมายเลขนักขับ และลายธงตราหมากรุก ติดโน้ตบุ๊ก หมวกกันน็อก หรือกระจกรถได้ ไม่ทิ้งคราบกาว',
-    images: [img('sticker-1.svg'), img('sticker-2.svg'), img('sticker-3.svg')],
-    price: 290, salePrice: 199, stock: 300, recommended: false, active: true, createdAt: isoOffset(-14),
+      'ชุดแลนยาร์ด ROD พร้อมขวดสเปรย์ สำหรับคล้องคอพกพาติดตัว',  // TODO: แทนที่ด้วยคำบรรยายจริงจากร้าน
+    images: ['https://shop-image.readyplanet.com/Uvt9VtNydrODA45qCW3KBN0pM-8=/500x500/698b616baef44166a42522f25571e591'],
+    price: 400, salePrice: 300, stock: 50,
+    recommended: false, active: true, createdAt: isoOffset(-10),
   },
 ]

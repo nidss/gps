@@ -6,9 +6,9 @@ import { AddressFields, EMPTY_ADDRESS, validateAddress, type AddressErrors } fro
 import { Alert, Badge, Button, ButtonLink, Card, Field, Input, cx } from '../components/ui'
 import { useAuth, useOrders } from '../store/AppStore'
 import type { Address, TaxInfo } from '../types'
-import { asset } from '../lib/asset'
 import { baht, thaiDate, thaiDateTime } from '../lib/format'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_TONE, PAYMENT_LABEL } from '../lib/orderStatus'
+import { Img } from '../components/Img'
 
 type Tab = 'profile' | 'shipping' | 'tax' | 'orders'
 
@@ -367,7 +367,7 @@ function OrdersTab({ orders }: { orders: ReturnType<typeof useOrders>['myOrders'
                   to={`/product/${line.productId}`}
                   className="h-12 w-12 shrink-0 overflow-hidden rounded-md border border-gp-line"
                 >
-                  <img src={asset(line.image)} alt="" className="h-full w-full object-cover" />
+                  <Img src={line.image} alt="" className="h-full w-full object-cover" />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-1 text-sm font-medium text-gp-ink">{line.name}</p>

@@ -95,6 +95,9 @@ src/
 node scripts/scrape-products.mjs "https://www.rodlifestore.com/category/286464"
 ```
 
+รองรับแพลตฟอร์ม **ReadyPlanet** (ที่ rodlifestore.com ใช้) เป็นพิเศษ —
+อ่านราคาจากการ์ดสินค้าในหน้าหมวดหมู่ เพราะหน้าสินค้าเรนเดอร์ราคาด้วย JavaScript
+
 สคริปต์จะอ่านหน้าหมวดหมู่ → ไล่เข้าหน้าสินค้าทีละชิ้น → ดาวน์โหลดรูปลง
 `public/images/products/` → แล้วเขียนทับ `src/lib/products.data.ts`
 (สำรองไฟล์เดิมไว้เป็น `.bak` ให้อัตโนมัติ)

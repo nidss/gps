@@ -1,0 +1,25 @@
+// ── รูปภาพที่มีภาพสำรองเมื่อโหลดไม่สำเร็จ ───────────────────────────
+// รูปสินค้าบางส่วนชี้ไปที่ CDN ภายนอก ถ้าปลายทางลบรูปหรือบล็อก hotlink
+// จะได้ไม่ขึ้นเป็นไอคอนรูปแตก
+import { useEffect, useState, type ImgHTMLAttributes } from 'react'
+import { asset } from '../lib/asset'
+
+const FALLBACK = 'images/placeholder.svg'
+
+export function Img({
+  src, alt, ...props
+}: Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> & { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false)
+
+  // เปลี่ยนสินค้าแล้วต้องลองโหลดรูปใหม่อีกครั้ง
+  useEffect(() => setFailed(false), [src])
+
+  return (
+    <img
+      src={asset(failed || !src ? FALLBACK : src)}
+      alt={alt}
+      onError={() => setFailed(true)}
+      {...props}
+    />
+  )
+}

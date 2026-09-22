@@ -6,8 +6,8 @@ import { ProductGrid } from '../components/ProductCard'
 import { Badge, Button, ButtonLink, EmptyState, QtyPicker, SectionTitle, cx } from '../components/ui'
 import { ReceiptIcon, ShieldIcon, TruckIcon } from '../components/Icons'
 import { useCart, useCatalog } from '../store/AppStore'
-import { asset } from '../lib/asset'
 import { baht, discountPercent, effectivePrice } from '../lib/format'
+import { Img } from '../components/Img'
 
 export function ProductDetail() {
   const { id = '' } = useParams()
@@ -90,8 +90,8 @@ export function ProductDetail() {
           {/* แกลเลอรีรูปสินค้า (รองรับหลายรูป) */}
           <div>
             <div className="overflow-hidden rounded-lg border border-gp-line bg-white">
-              <img
-                src={asset(product.images[imageIndex] ?? product.images[0])}
+              <Img
+                src={product.images[imageIndex] ?? product.images[0]}
                 alt={`${product.name} รูปที่ ${imageIndex + 1}`}
                 width={800}
                 height={800}
@@ -112,7 +112,7 @@ export function ProductDetail() {
                       i === imageIndex ? 'border-gp-red' : 'border-gp-line hover:border-gp-ink-soft',
                     )}
                   >
-                    <img src={asset(src)} alt="" className="h-full w-full object-cover" />
+                    <Img src={src} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>

@@ -6,9 +6,9 @@ import { Badge, Button, Card, Checkbox, Field, Input, Modal, Textarea, cx } from
 import { EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Product } from '../../types'
-import { asset } from '../../lib/asset'
 import { baht, discountPercent, num } from '../../lib/format'
 import { uid } from '../../lib/id'
+import { Img } from '../../components/Img'
 
 function emptyProduct(): Product {
   return {
@@ -103,8 +103,8 @@ export function AdminProducts() {
                   <tr key={product.id} className={cx(!product.active && 'opacity-60')}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={asset(product.images[0] ?? '')}
+                        <Img
+                          src={product.images[0] ?? ''}
                           alt=""
                           className="h-12 w-12 shrink-0 rounded-md border border-gp-line object-cover"
                         />

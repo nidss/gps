@@ -2,9 +2,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Banner } from '../types'
-import { asset } from '../lib/asset'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 import { cx } from './ui'
+import { Img } from './Img'
 
 const AUTOPLAY_MS = 6000
 
@@ -61,8 +61,8 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
             role="group"
             aria-label={`${i + 1} จาก ${total}`}
           >
-            <img
-              src={asset(banner.image)}
+            <Img
+              src={banner.image}
               alt={banner.title}
               width={1600}
               height={640}

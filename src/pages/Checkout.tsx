@@ -7,9 +7,9 @@ import { Alert, Badge, Button, Card, Checkbox, Field, Input, cx } from '../compo
 import { CheckIcon, TagIcon } from '../components/Icons'
 import { FREE_SHIPPING_MIN, SHIPPING_FEE, VAT_RATE, useAuth, useCart, useCatalog, useOrders } from '../store/AppStore'
 import type { Address, PaymentMethod, TaxInfo } from '../types'
-import { asset } from '../lib/asset'
 import { baht } from '../lib/format'
 import { PAYMENT_LABEL } from '../lib/orderStatus'
+import { Img } from '../components/Img'
 
 interface AppliedCoupon {
   code: string
@@ -343,8 +343,8 @@ export function Checkout() {
               <ul className="mt-4 grid max-h-60 gap-3 overflow-y-auto">
                 {items.map(({ product, qty, lineTotal }) => (
                   <li key={product.id} className="flex gap-3">
-                    <img
-                      src={asset(product.images[0])}
+                    <Img
+                      src={product.images[0]}
                       alt=""
                       className="h-14 w-14 shrink-0 rounded-md border border-gp-line object-cover"
                     />

@@ -6,9 +6,9 @@ import { Badge, Button, Card, Checkbox, Field, Input, Modal, cx } from '../../co
 import { ArrowDownIcon, ArrowUpIcon, EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Banner } from '../../types'
-import { asset } from '../../lib/asset'
 import { thaiDate, todayKey } from '../../lib/format'
 import { uid } from '../../lib/id'
+import { Img } from '../../components/Img'
 
 /** สถานะการแสดงผลของแบนเนอร์ ณ วันนี้ */
 function bannerStatus(banner: Banner): { label: string; tone: 'green' | 'blue' | 'slate' | 'amber' } {
@@ -118,8 +118,8 @@ export function AdminBanners() {
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={asset(banner.image)}
+                        <Img
+                          src={banner.image}
                           alt=""
                           className="h-12 w-24 shrink-0 rounded-md border border-gp-line object-cover"
                         />

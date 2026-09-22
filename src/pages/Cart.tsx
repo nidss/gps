@@ -4,8 +4,8 @@ import { Container, PageHeader } from '../components/Layout'
 import { Button, ButtonLink, Card, EmptyState, QtyPicker } from '../components/ui'
 import { TrashIcon } from '../components/Icons'
 import { FREE_SHIPPING_MIN, SHIPPING_FEE, useCart } from '../store/AppStore'
-import { asset } from '../lib/asset'
 import { baht, discountPercent } from '../lib/format'
+import { Img } from '../components/Img'
 
 export function Cart() {
   const { items, count, subtotal, setQty, remove } = useCart()
@@ -52,8 +52,8 @@ export function Cart() {
                         to={`/product/${product.id}`}
                         className="h-24 w-24 shrink-0 overflow-hidden rounded-md border border-gp-line bg-gp-surface sm:h-28 sm:w-28"
                       >
-                        <img
-                          src={asset(product.images[0])}
+                        <Img
+                          src={product.images[0]}
                           alt={product.name}
                           className="h-full w-full object-cover"
                         />

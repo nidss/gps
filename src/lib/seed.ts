@@ -145,7 +145,8 @@ export function buildSeedOrders(products: Product[], users: User[]): Order[] {
     const [days, userIndex, items, status, wantTax] = entry
     const user = users[userIndex]
     const lines = items.map(([productIndex, qty]) => {
-      const p = products[productIndex]
+      // วนดัชนีกลับมาต้นรายการ เผื่อจำนวนสินค้าน้อยกว่าที่แผนตัวอย่างอ้างถึง
+      const p = products[productIndex % products.length]
       return {
         productId: p.id, name: p.name, sku: p.sku, image: p.images[0],
         unitPrice: p.salePrice ?? p.price, qty,

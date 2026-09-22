@@ -1,9 +1,9 @@
 // ── ตัวเลือกรูปภาพ: ใส่ที่อยู่รูป หรืออัปโหลดไฟล์จากเครื่อง ────────────
 // อัปโหลดแล้วแปลงเป็น base64 เก็บลง localStorage จึงต้องจำกัดขนาดไฟล์
 import { useRef, useState } from 'react'
-import { asset } from '../lib/asset'
 import { Button, Input } from './ui'
 import { ArrowDownIcon, ArrowUpIcon, ImageIcon, TrashIcon } from './Icons'
+import { Img } from './Img'
 
 /** ขนาดไฟล์สูงสุดที่ยอมให้อัปโหลด (localStorage มีพื้นที่จำกัดราว 5 MB) */
 const MAX_FILE_BYTES = 1024 * 1024
@@ -39,7 +39,7 @@ export function SingleImagePicker({
       <div className="flex gap-3">
         <div className="h-24 w-40 shrink-0 overflow-hidden rounded-md border border-gp-line bg-gp-surface">
           {value ? (
-            <img src={asset(value)} alt="ตัวอย่างแบนเนอร์" className="h-full w-full object-cover" />
+            <Img src={value} alt="ตัวอย่างแบนเนอร์" className="h-full w-full object-cover" />
           ) : (
             <span className="flex h-full items-center justify-center text-gp-ink-soft">
               <ImageIcon className="h-6 w-6" />
@@ -124,8 +124,8 @@ export function MultiImagePicker({
         <ul className="mb-3 grid gap-2">
           {images.map((src, i) => (
             <li key={`${src}-${i}`} className="flex items-center gap-3 rounded-md border border-gp-line bg-white p-2">
-              <img
-                src={asset(src)}
+              <Img
+                src={src}
                 alt={`รูปที่ ${i + 1}`}
                 className="h-14 w-14 shrink-0 rounded-md border border-gp-line object-cover"
               />
