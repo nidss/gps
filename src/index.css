@@ -114,11 +114,29 @@ input[type='number'] {
   animation: gp-badge-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* เคารพการตั้งค่าลดการเคลื่อนไหวของผู้ใช้ */
+/*
+ * โหมดลดการเคลื่อนไหว
+ *
+ * "ลดการเคลื่อนไหว" หมายถึงเลี่ยงของที่วิ่งข้ามจอจนทำให้เวียนหัว
+ * ไม่ได้แปลว่าห้ามมีการตอบสนองใด ๆ เลย ถ้าตัดทิ้งหมดผู้ใช้กลุ่มนี้
+ * จะกดแล้วไม่เห็นอะไรตอบกลับเลยสักอย่าง
+ *
+ * จึงคงการตอบสนองไว้แต่เปลี่ยนเป็นแบบอยู่กับที่ ไม่หมุน ไม่เหวี่ยง
+ * แค่ขยายเบา ๆ พร้อมวงแหวนเรืองรอบไอคอนให้สายตาจับได้
+ */
+@keyframes gp-cart-bump-calm {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(221, 51, 51, 0); }
+  35% { transform: scale(1.12); box-shadow: 0 0 0 6px rgba(221, 51, 51, 0.35); }
+  100% { transform: scale(1); box-shadow: 0 0 0 10px rgba(221, 51, 51, 0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .gp-cart-bump,
+  .gp-cart-bump {
+    animation: gp-cart-bump-calm 420ms ease-out;
+    border-radius: 0.375rem;
+  }
+
   .gp-cart-bump .gp-cart-badge {
-    animation-duration: 1ms;
-    animation-iteration-count: 1;
+    animation: gp-badge-pop 420ms ease-out;
   }
 }
