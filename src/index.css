@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+/* ── ชุดสีและโทเคนของแบรนด์ Grandprix ────────────────────────────────
+   สีหลักตามที่กำหนด: #dd3333 (แดง) และ #333946 (กรมท่าเข้ม)          */
+@theme {
+  --color-gp-red: #dd3333;
+  --color-gp-red-dark: #b82a2a;
+  --color-gp-red-light: #f05555;
+  --color-gp-red-tint: #fdeded;
+
+  --color-gp-ink: #333946;
+  --color-gp-ink-dark: #252a34;
+  --color-gp-ink-light: #454c5e;
+  --color-gp-ink-soft: #6b7385;
+
+  --color-gp-line: #e2e5ea;
+  --color-gp-surface: #f5f6f8;
+
+  --font-sans: 'IBM Plex Sans Thai', system-ui, -apple-system, sans-serif;
+  --font-display: 'Barlow Condensed', 'IBM Plex Sans Thai', sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-gp-surface);
+    color: var(--color-gp-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ตัวเลขในตาราง/ราคาให้กว้างเท่ากันเพื่อไม่ให้ตัวเลขกระตุกเวลาอัปเดต */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* แถบลายธงตราหมากรุก ใช้คั่นส่วนต่าง ๆ ให้ได้อารมณ์มอเตอร์สปอร์ต */
+  .checker-strip {
+    height: 8px;
+    background-image:
+      linear-gradient(45deg, var(--color-gp-ink) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--color-gp-ink) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--color-gp-ink) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--color-gp-ink) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    background-color: #fff;
+  }
+
+  /* เส้นทแยงมุมแบบสปีดไลน์ สำหรับพื้นหลังหัวข้อ */
+  .speed-lines {
+    background-image: repeating-linear-gradient(
+      -60deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(255, 255, 255, 0.05) 2px,
+      transparent 2px,
+      transparent 12px
+    );
+  }
+
+  /* หัวข้อประจำส่วน มีขีดแดงนำหน้า */
+  .section-title {
+    position: relative;
+    padding-left: 0.875rem;
+  }
+  .section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    bottom: 0.15em;
+    width: 5px;
+    background-color: var(--color-gp-red);
+    transform: skewX(-12deg);
+  }
+}
+
+/* ซ่อนลูกศรของ input[type=number] ให้ดูสะอาดขึ้น */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640">
+  <defs>
+  <pattern id="bchk" width="44" height="44" patternUnits="userSpaceOnUse">
+    <rect width="44" height="44" fill="none"/>
+    <rect width="22" height="22" fill="rgba(255,255,255,0.13)"/>
+    <rect x="22" y="22" width="22" height="22" fill="rgba(255,255,255,0.13)"/>
+  </pattern>
+  <pattern id="bspd" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(-60)">
+    <rect width="26" height="26" fill="none"/>
+    <rect width="3" height="26" fill="rgba(255,255,255,0.05)"/>
+  </pattern>
+    <radialGradient id="glow" cx="74%" cy="34%" r="56%">
+      <stop offset="0%" stop-color="#454c5e" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#333946" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="bclip"><rect width="1600" height="640"/></clipPath>
+  </defs>
+  <g clip-path="url(#bclip)">
+    <rect width="1600" height="640" fill="#333946"/>
+    <rect width="1600" height="640" fill="url(#glow)"/>
+    <rect width="1600" height="640" fill="url(#bspd)"/>
+    <path d="M1080 -40 L1400 -40 L1000 680 L680 680 Z" fill="#dd3333" opacity="0.88"/>
+    <path d="M1400 -40 L1520 -40 L1120 680 L1000 680 Z" fill="#ffffff" opacity="0.12"/>
+    <rect x="1280" y="0" width="320" height="640" fill="url(#bchk)" opacity="0.55"/>
+    <circle cx="1180" cy="320" r="210" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="3"/>
+    <circle cx="1180" cy="320" r="150" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="22"/>
+  </g>
+</svg>
