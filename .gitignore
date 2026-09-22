@@ -8,3 +8,6 @@ npm-debug.log*
 
 # ไฟล์สำรองที่ scripts/scrape-products.mjs สร้าง
 *.bak
+
+# ไฟล์ทดสอบชั่วคราว ไม่ต้องเก็บเข้า repo
+*.local.mjs
