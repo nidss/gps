@@ -18,6 +18,10 @@ export function Img({
     <img
       src={asset(failed || !src ? FALLBACK : src)}
       alt={alt}
+      // ไม่ส่ง Referer ไปกับคำขอรูป เพราะ CDN ของร้านเดิมกัน hotlink
+      // ด้วยการเช็กว่าคำขอมาจากโดเมนของร้านหรือไม่ ถ้าไม่ส่ง Referer เลย
+      // การตรวจแบบนี้ส่วนใหญ่จะปล่อยผ่าน
+      referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
       {...props}
     />

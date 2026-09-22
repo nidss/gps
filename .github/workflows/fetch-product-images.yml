@@ -1,0 +1,51 @@
+# เวิร์กโฟลว์ช่วยงาน: ดึงรูปสินค้าจาก CDN ของร้านเดิมมาเก็บไว้ในโปรเจกต์
+# รันด้วยมือเท่านั้น (workflow_dispatch) ไม่ได้ผูกกับการ push
+#
+# มีไว้เพราะ CDN ของร้านเดิมกัน hotlink ทำให้รูปไม่ขึ้นเมื่อเรียกจากโดเมนอื่น
+# ตัว runner ของ GitHub ออกอินเทอร์เน็ตได้ จึงดาวน์โหลดรูปแล้ว commit กลับเข้า repo ให้
+name: ดึงรูปสินค้าเข้าโปรเจกต์
+
+on:
+  workflow_dispatch:
+    inputs:
+      referer:
+        description: 'ค่า Referer ที่ส่งไปกับคำขอรูป'
+        required: false
+        default: 'https://www.rodlifestore.com/'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: ดาวน์โหลดรูปและแก้ไฟล์ข้อมูลสินค้า
+        run: node scripts/download-images.mjs --referer="${{ inputs.referer }}"
+
+      - name: ตรวจว่า build ผ่าน
+        run: |
+          npm ci
+          npm run build
+
+      - name: commit รูปกลับเข้า repo
+        run: |
+          if git diff --quiet; then
+            echo "ไม่มีอะไรเปลี่ยน — รูปอยู่ในโปรเจกต์ครบแล้ว"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/images/products src/lib/products.data.ts
+          git commit -m "chore: เก็บรูปสินค้าไว้ในโปรเจกต์แทนการเรียกจาก CDN ภายนอก
+
+          CDN ของร้านเดิมกัน hotlink ทำให้รูปไม่ขึ้นเมื่อเรียกจากโดเมนอื่น
+          ดาวน์โหลดรูปมาเก็บใน public/images/products/ แล้วแก้ products.data.ts
+          ให้ชี้มาที่ไฟล์ในโปรเจกต์ (สร้างโดย scripts/download-images.mjs)"
+          git push
