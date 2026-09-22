@@ -47,6 +47,17 @@ const AppContext = createContext<{
   setState: React.Dispatch<React.SetStateAction<AppState>>
 } | null>(null)
 
+/**
+ * เลขรุ่นของแคตตาล็อกตั้งต้น (สินค้า แบนเนอร์ คูปอง)
+ *
+ * ต้องบวกเลขนี้ทุกครั้งที่แก้ข้อมูลใน products.data.ts หรือ seed.ts
+ * ไม่งั้นคนที่เคยเข้าเว็บมาก่อนจะเห็นข้อมูลชุดเดิมค้างอยู่ตลอดไป
+ * เพราะข้อมูลถูกเก็บไว้ใน localStorage ของเบราว์เซอร์ตั้งแต่ครั้งแรกที่เข้า
+ *
+ * รุ่น 2: เปลี่ยนจากสินค้าตัวอย่างมาเป็นสินค้าจริงของร้าน ROD
+ */
+const CATALOG_VERSION = 2
+
 /** โหลดข้อมูลจาก localStorage ครั้งแรก พร้อมใส่ข้อมูลตัวอย่างถ้ายังไม่เคยมี */
 function loadInitialState(): AppState {
   const seeded = read<boolean>(KEYS.seeded, false)
@@ -59,6 +70,7 @@ function loadInitialState(): AppState {
     write(KEYS.orders, orders)
     write(KEYS.notifications, seedNotifications)
     write(KEYS.seeded, true)
+    write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
       products: seedProducts, banners: seedBanners, coupons: seedCoupons,
       users: seedUsers, orders, notifications: seedNotifications,
@@ -67,6 +79,32 @@ function loadInitialState(): AppState {
       adminLoggedIn: read<boolean>(KEYS.adminSession, false),
     }
   }
+  // เคยเข้าเว็บมาแล้ว แต่แคตตาล็อกในเครื่องเป็นรุ่นเก่า ให้อัปเดตเฉพาะ
+  // สินค้า แบนเนอร์ และคูปอง ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
+  // ซึ่งเป็นข้อมูลที่ผู้ใช้สร้างเองยังเก็บไว้เหมือนเดิม
+  const storedVersion = read<number>(KEYS.catalogVersion, 1)
+  if (storedVersion !== CATALOG_VERSION) {
+    write(KEYS.products, seedProducts)
+    write(KEYS.banners, seedBanners)
+    write(KEYS.coupons, seedCoupons)
+    // ตะกร้าต้องล้างทิ้ง เพราะเก็บไว้แค่รหัสสินค้า ไม่ได้เก็บราคา
+    // ถ้าแคตตาล็อกใหม่ใช้รหัสซ้ำกับของเดิม ผู้ใช้จะเห็นสินค้าคนละตัว
+    // ในราคาคนละราคาโดยที่ไม่เคยกดเพิ่มเอง
+    write(KEYS.cart, [])
+    write(KEYS.catalogVersion, CATALOG_VERSION)
+    return {
+      products: seedProducts,
+      banners: seedBanners,
+      coupons: seedCoupons,
+      users: read<User[]>(KEYS.users, seedUsers),
+      orders: read<Order[]>(KEYS.orders, []),
+      notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
+      cart: [],
+      currentUserId: read<string | null>(KEYS.session, null),
+      adminLoggedIn: read<boolean>(KEYS.adminSession, false),
+    }
+  }
+
   return {
     products: read<Product[]>(KEYS.products, seedProducts),
     banners: read<Banner[]>(KEYS.banners, seedBanners),
