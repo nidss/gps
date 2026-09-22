@@ -32,10 +32,18 @@
   }
   const isType = (n, t) => [].concat(n?.['@type'] ?? []).includes(t)
 
+  /**
+   * จับ "ตัวเลขตัวแรก" ในข้อความ
+   * ห้ามตัดอักขระที่ไม่ใช่ตัวเลขทิ้งทั้งหมด เพราะข้อความที่มีสองราคา
+   * เช่น "350.00 บาท 450.00 บาท" จะรวมกันเป็น "350.00450.00"
+   * แล้ว parseFloat หยุดที่จุดที่สอง ได้ 350.0045 ซึ่งผิด
+   */
   const toNum = (v) => {
     if (v == null) return null
     if (typeof v === 'number') return Number.isFinite(v) ? v : null
-    const n = parseFloat(String(v).replace(/[^\d.]/g, ''))
+    const m = String(v).replace(/,/g, '').match(/\d+(?:\.\d+)?/)
+    if (!m) return null
+    const n = parseFloat(m[0])
     return Number.isFinite(n) && n > 0 ? n : null
   }
 
@@ -53,6 +61,24 @@
   document.querySelectorAll('a[href]').forEach((a) => {
     const u = abs(a.getAttribute('href'))
     if (u && patterns.some((re) => re.test(u))) links.add(u.split('#')[0])
+  })
+
+  // ── ราคาจากการ์ดในหน้าหมวดหมู่ ──
+  // หน้าสินค้าเรนเดอร์ราคาด้วย JavaScript การ fetch HTML ดิบจึงไม่ได้ราคาลด
+  // แต่การ์ดในหน้าหมวดหมู่มีทั้งราคาเต็มและราคาลดครบอยู่แล้ว
+  const cardInfo = new Map()
+  document.querySelectorAll('li.product-card, .product-card').forEach((el) => {
+    const url = abs(el.querySelector('a[href*="/product/"]')?.getAttribute('href'))
+    if (!url) return
+    const special = toNum(el.querySelector('.product-price-special')?.textContent)
+    const original = toNum(el.querySelector('.product-price-original')?.textContent)
+    const im = el.querySelector('img')
+    cardInfo.set(url.split('#')[0], {
+      name: el.querySelector('.product-name')?.textContent.replace(/\s+/g, ' ').trim(),
+      price: original && special && special < original ? original : (special ?? original),
+      salePrice: original && special && special < original ? special : null,
+      image: abs(im?.getAttribute('data-src') || im?.getAttribute('src')),
+    })
   })
 
   const list = [...links].slice(0, LIMIT)
@@ -116,6 +142,13 @@
       const res = await fetch(url, { credentials: 'same-origin' })
       const doc = new DOMParser().parseFromString(await res.text(), 'text/html')
       const item = parse(doc, url)
+      // ข้อมูลจากการ์ดเชื่อถือได้กว่า ให้ทับค่าที่อ่านจากหน้าสินค้า
+      const card = cardInfo.get(url)
+      if (card) {
+        item.name = card.name || item.name
+        if (card.price) { item.price = card.price; item.salePrice = card.salePrice }
+        if (card.image && !item.images.includes(card.image)) item.images.push(card.image)
+      }
       products.push(item)
       console.log(`  [${i + 1}/${list.length}] ${item.name || '(ไม่มีชื่อ)'} — ${item.price ?? '?'} บาท`)
     } catch (err) {

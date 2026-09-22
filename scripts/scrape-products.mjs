@@ -73,12 +73,19 @@ const typeOf = (node) => {
   return Array.isArray(t) ? t : [t]
 }
 
-/** แปลงข้อความราคาเป็นตัวเลข เช่น "1,290 บาท" -> 1290 */
+/**
+ * แปลงข้อความราคาเป็นตัวเลข เช่น "1,290 บาท" -> 1290
+ *
+ * ต้องจับ "ตัวเลขตัวแรก" เท่านั้น ห้ามตัดอักขระที่ไม่ใช่ตัวเลขทิ้งทั้งหมด
+ * เพราะถ้าข้อความมีสองราคา เช่น "350.00 บาท 450.00 บาท" จะกลายเป็น
+ * "350.00450.00" แล้ว parseFloat หยุดที่จุดที่สอง ได้ผลลัพธ์เพี้ยนเป็น 350.0045
+ */
 function parsePrice(text) {
   if (text === null || text === undefined) return null
   if (typeof text === 'number') return Number.isFinite(text) ? text : null
-  const cleaned = String(text).replace(/[^\d.]/g, '')
-  const n = Number.parseFloat(cleaned)
+  const match = String(text).replace(/,/g, '').match(/\d+(?:\.\d+)?/)
+  if (!match) return null
+  const n = Number.parseFloat(match[0])
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
