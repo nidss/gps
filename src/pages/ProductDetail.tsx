@@ -1,5 +1,5 @@
 // ── หน้ารายละเอียดสินค้า (เข้ามาจากการกดกล่องสินค้า) ─────────────────
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Container } from '../components/Layout'
 import { ProductGrid } from '../components/ProductCard'
@@ -8,6 +8,7 @@ import { ReceiptIcon, ShieldIcon, TruckIcon } from '../components/Icons'
 import { useCart, useCatalog } from '../store/AppStore'
 import { baht, discountPercent, effectivePrice } from '../lib/format'
 import { Img } from '../components/Img'
+import { useFlyToCart } from '../components/FlyToCart'
 
 export function ProductDetail() {
   const { id = '' } = useParams()
@@ -19,6 +20,9 @@ export function ProductDetail() {
   const [imageIndex, setImageIndex] = useState(0)
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const fly = useFlyToCart()
+  // ผูกกับกรอบรูปหลักที่มีอยู่แล้ว ไม่เพิ่ม element ใหม่
+  const galleryRef = useRef<HTMLDivElement>(null)
 
   // รีเซ็ตสถานะเมื่อเปลี่ยนไปดูสินค้าตัวอื่น
   useEffect(() => {
@@ -60,8 +64,10 @@ export function ProductDetail() {
   const maxQty = Math.max(1, product.stock)
 
   function handleAddToCart() {
+    // เพิ่มลงตะกร้าก่อนเสมอ แอนิเมชันเป็นแค่ของประกอบ
     add(product!.id, qty)
     setAdded(true)
+    fly(galleryRef.current)
   }
 
   function handleBuyNow() {
@@ -89,7 +95,7 @@ export function ProductDetail() {
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
           {/* แกลเลอรีรูปสินค้า (รองรับหลายรูป) */}
           <div>
-            <div className="overflow-hidden rounded-lg border border-gp-line bg-white">
+            <div ref={galleryRef} className="overflow-hidden rounded-lg border border-gp-line bg-white">
               <Img
                 src={product.images[imageIndex] ?? product.images[0]}
                 alt={`${product.name} รูปที่ ${imageIndex + 1}`}

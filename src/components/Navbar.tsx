@@ -6,6 +6,7 @@ import { asset } from '../lib/asset'
 import { baht, thaiDateTime } from '../lib/format'
 import { BellIcon, CartIcon, ChevronDownIcon, CloseIcon, MenuIcon, SearchIcon, UserIcon } from './Icons'
 import { Badge, Button, cx } from './ui'
+import { useCartTarget } from './FlyToCart'
 
 /** ปิด dropdown เมื่อคลิกนอกพื้นที่ หรือกด Escape */
 function useDismiss(onDismiss: () => void) {
@@ -33,7 +34,7 @@ const iconButton =
 function CountBadge({ count }: { count: number }) {
   if (count <= 0) return null
   return (
-    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gp-red px-1 text-[11px] font-bold text-white ring-2 ring-gp-ink">
+    <span className="gp-cart-badge absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gp-red px-1 text-[11px] font-bold text-white ring-2 ring-gp-ink">
       {count > 99 ? '99+' : count}
     </span>
   )
@@ -51,6 +52,8 @@ export function Navbar() {
   const [query, setQuery] = useState('')
 
   const dropdownRef = useDismiss(() => setOpenMenu('none'))
+  // ปลายทางของแอนิเมชันรูปสินค้าวิ่งเข้าตะกร้า
+  const cartTargetRef = useCartTarget()
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -240,6 +243,7 @@ export function Navbar() {
             <div className="relative">
               <button
                 type="button"
+                ref={cartTargetRef as React.RefObject<HTMLButtonElement>}
                 onClick={() => setOpenMenu((m) => (m === 'cart' ? 'none' : 'cart'))}
                 aria-label={`ตะกร้าสินค้า ${cartCount} ชิ้น`}
                 aria-expanded={openMenu === 'cart'}

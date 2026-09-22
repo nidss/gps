@@ -1,10 +1,12 @@
 // ── กล่องสินค้า ใช้ทั้งหน้าแรกและหน้ารายการสินค้า ────────────────────
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../types'
 import { baht, discountPercent, effectivePrice } from '../lib/format'
 import { useCart } from '../store/AppStore'
 import { Badge, Button, cx } from './ui'
 import { Img } from './Img'
+import { useFlyToCart } from './FlyToCart'
 
 /**
  * กรอบรูปสินค้าทรงสี่เหลี่ยมจัตุรัส พร้อมป้ายส่วนลดและป้ายสินค้าหมด
@@ -60,11 +62,20 @@ export function PriceTag({ product, className }: { product: Product; className?:
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart()
+  const fly = useFlyToCart()
+  // ผูกกับ <Link> ที่ห่อรูปอยู่แล้ว ไม่เพิ่ม element ใหม่ เลย์เอาต์จึงไม่ขยับ
+  const thumbRef = useRef<HTMLAnchorElement>(null)
   const soldOut = product.stock <= 0
+
+  function handleAdd() {
+    // เพิ่มลงตะกร้าก่อนเสมอ แอนิเมชันเป็นแค่ของประกอบ
+    add(product.id, 1)
+    fly(thumbRef.current)
+  }
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-lg border border-gp-line bg-white transition-shadow hover:shadow-xl">
-      <Link to={`/product/${product.id}`}>
+      <Link to={`/product/${product.id}`} ref={thumbRef}>
         <ProductThumb product={product} />
       </Link>
 
@@ -84,7 +95,7 @@ export function ProductCard({ product }: { product: Product }) {
           size="sm"
           className="mt-4 w-full"
           disabled={soldOut}
-          onClick={() => add(product.id, 1)}
+          onClick={handleAdd}
         >
           {soldOut ? 'สินค้าหมด' : 'เพิ่มลงตะกร้า'}
         </Button>
