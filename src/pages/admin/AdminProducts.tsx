@@ -3,12 +3,16 @@ import { useMemo, useState } from 'react'
 import { AdminPageHeader } from '../../components/AdminLayout'
 import { MultiImagePicker } from '../../components/ImagePicker'
 import { Badge, Button, Card, Checkbox, Field, Input, Modal, Textarea, cx } from '../../components/ui'
-import { EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
+import { EditIcon, GridIcon, ListIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Product } from '../../types'
 import { baht, discountPercent, num } from '../../lib/format'
 import { uid } from '../../lib/id'
+import { KEYS, read, write } from '../../lib/storage'
 import { Img } from '../../components/Img'
+import { AdminProductGrid } from '../../components/AdminProductCard'
+
+type ViewMode = 'grid' | 'table'
 
 function emptyProduct(): Product {
   return {
@@ -23,6 +27,25 @@ export function AdminProducts() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
+
+  // อ่านค่าที่เลือกไว้ครั้งก่อนแบบ lazy initializer ไม่งั้นหน้าจะกระพริบ
+  // เป็นมุมมองเริ่มต้นก่อนแล้วค่อยเด้งไปมุมมองที่ผู้ใช้เลือกไว้
+  const [view, setView] = useState<ViewMode>(() => read<ViewMode>(KEYS.adminProductView, 'grid'))
+
+  function changeView(next: ViewMode) {
+    setView(next)
+    write(KEYS.adminProductView, next)
+  }
+
+  /** เปิดฟอร์มแก้ไขสินค้า ใช้ร่วมกันทั้งมุมมองการ์ดและตาราง */
+  function openEdit(product: Product) {
+    setErrors({})
+    setEditing({ ...product })
+  }
+
+  function confirmDelete(product: Product) {
+    if (window.confirm(`ลบสินค้า “${product.name}” ใช่หรือไม่?`)) deleteProduct(product.id)
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -73,15 +96,49 @@ export function AdminProducts() {
         }
       />
 
-      <div className="mb-4 max-w-sm">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="ค้นหาชื่อสินค้าหรือรหัสสินค้า"
-          aria-label="ค้นหาสินค้า"
-        />
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="w-full max-w-sm">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาชื่อสินค้าหรือรหัสสินค้า"
+            aria-label="ค้นหาสินค้า"
+          />
+        </div>
+
+        {/* สลับมุมมอง — การ์ดเห็นรูปชัด ตารางเทียบตัวเลขได้เร็ว */}
+        <div className="ml-auto inline-flex rounded-md border border-gp-line bg-white p-1">
+          {([
+            { mode: 'grid', label: 'มุมมองการ์ด', icon: GridIcon },
+            { mode: 'table', label: 'มุมมองตาราง', icon: ListIcon },
+          ] as const).map(({ mode, label, icon: Icon }) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => changeView(mode)}
+              aria-label={label}
+              aria-pressed={view === mode}
+              title={label}
+              className={cx(
+                'flex h-9 w-10 items-center justify-center rounded transition-colors',
+                view === mode
+                  ? 'bg-gp-ink text-white'
+                  : 'text-gp-ink-soft hover:bg-gp-surface hover:text-gp-ink',
+              )}
+            >
+              <Icon className="h-4.5 w-4.5" />
+            </button>
+          ))}
+        </div>
       </div>
 
+      {filtered.length === 0 ? (
+        <Card className="px-5 py-12 text-center text-sm text-gp-ink-soft">
+          ไม่พบสินค้าที่ตรงกับคำค้นหา
+        </Card>
+      ) : view === 'grid' ? (
+        <AdminProductGrid products={filtered} onEdit={openEdit} onDelete={confirmDelete} />
+      ) : (
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[56rem] text-sm">
@@ -147,7 +204,7 @@ export function AdminProducts() {
                       <div className="flex justify-end gap-1">
                         <button
                           type="button"
-                          onClick={() => { setErrors({}); setEditing({ ...product }) }}
+                          onClick={() => openEdit(product)}
                           aria-label={`แก้ไข ${product.name}`}
                           className="rounded-md p-2 text-gp-ink-soft transition-colors hover:bg-gp-surface hover:text-gp-ink"
                         >
@@ -155,9 +212,7 @@ export function AdminProducts() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (window.confirm(`ลบสินค้า “${product.name}” ใช่หรือไม่?`)) deleteProduct(product.id)
-                          }}
+                          onClick={() => confirmDelete(product)}
                           aria-label={`ลบ ${product.name}`}
                           className="rounded-md p-2 text-gp-ink-soft transition-colors hover:bg-gp-red-tint hover:text-gp-red"
                         >
@@ -171,11 +226,8 @@ export function AdminProducts() {
             </tbody>
           </table>
         </div>
-
-        {filtered.length === 0 && (
-          <p className="px-5 py-12 text-center text-sm text-gp-ink-soft">ไม่พบสินค้าที่ตรงกับคำค้นหา</p>
-        )}
       </Card>
+      )}
 
       {/* ฟอร์มเพิ่ม/แก้ไขสินค้า */}
       <Modal

@@ -16,6 +16,7 @@ export const KEYS = {
   adminSession: `${PREFIX}admin-session`,
   seeded: `${PREFIX}seeded`,
   catalogVersion: `${PREFIX}catalog-version`,
+  adminProductView: `${PREFIX}admin-product-view`,
 } as const
 
 /** อ่านค่าจาก localStorage แบบปลอดภัย — คืน fallback เมื่ออ่านไม่ได้ */
