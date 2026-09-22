@@ -3,7 +3,7 @@
 ร้านค้าออนไลน์สำหรับสินค้าพรีเมี่ยมของการแข่งขัน Grandprix
 พร้อมระบบหลังบ้านสำหรับจัดการแบนเนอร์ สินค้า สมาชิก และดูยอดขาย
 
-🔗 **เว็บไซต์:** https://nidss.github.io/gps/
+🔗 **เว็บไซต์:** https://nidss.github.io/gpshop/
 
 > ถ้าเข้ามาแก้โค้ดต่อ อ่าน [`CLAUDE.md`](./CLAUDE.md) ด้วย —
 > รวมกับดักเฉพาะของโปรเจกต์นี้ที่เคยทำให้เกิดบั๊กจริงมาแล้ว
@@ -93,7 +93,7 @@ npm install
 npm run dev        # เปิด dev server
 npm run typecheck  # ตรวจ type อย่างเดียว เร็วกว่า build
 npm run build      # ตรวจ type แล้ว build ลง dist/
-npm run preview    # ดูผล build ที่ http://localhost:4173/gps/
+npm run preview    # ดูผล build ที่ http://localhost:4173/gpshop/
 ```
 
 Deploy อัตโนมัติผ่าน GitHub Actions ทุกครั้งที่ push เข้า `main`

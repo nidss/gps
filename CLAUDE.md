@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ระบบล็อกอินและสิทธิ์ admin เป็นการสาธิตฝั่ง client เท่านั้น (`hashPassword` ใน `src/lib/storage.ts`
 เป็น djb2 ไม่ใช่การเข้ารหัสจริง) อย่าอ้างอิงว่าเป็นการรักษาความปลอดภัยจริง และอย่าต่อยอดเก็บข้อมูลอ่อนไหว
 
-เว็บจริง: https://nidss.github.io/gps/
+เว็บจริง: https://nidss.github.io/gpshop/
 
 ---
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `npm run dev` | dev server |
 | `npm run build` | `tsc -b` แล้ว `vite build` — ใช้เป็นด่านตรวจหลักก่อน commit |
 | `npm run typecheck` | ตรวจ type อย่างเดียว เร็วกว่า build |
-| `npm run preview` | เสิร์ฟ `dist/` ที่ `http://localhost:4173/gps/` (ต้อง build ก่อน) |
+| `npm run preview` | เสิร์ฟ `dist/` ที่ `http://localhost:4173/gpshop/` (ต้อง build ก่อน) |
 
 ### ไม่มี test framework และไม่มี linter ในโปรเจกต์นี้
 
@@ -55,7 +55,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 (ตะกร้าเก็บแค่รหัสสินค้าไม่ได้เก็บราคา ถ้าแคตตาล็อกใหม่ใช้รหัสซ้ำจะได้สินค้าผิดตัวผิดราคา)
 ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือนยังเก็บไว้เหมือนเดิม
 
-### 2. `base: '/gps/'` + HashRouter
+### 2. `base: '/gpshop/'` + HashRouter
 
 ไฟล์ใน `public/` ต้องเรียกผ่าน `asset()` จาก `src/lib/asset.ts` เสมอ ห้ามเขียน path ตรง
 (`asset()` ปล่อยผ่าน URL เต็มและ data URI ให้อยู่แล้ว)
