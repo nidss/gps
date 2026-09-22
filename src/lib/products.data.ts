@@ -29,7 +29,7 @@ export const seedProducts: Product[] = [
     category: 'เสื้อผ้า',
     description:
       'เสื้อยืดคอกลม ROD ผลิตจากเนื้อผ้าซูปเปอร์ดราย ช่วยให้สวมใส่สบาย ระบายอากาศได้ดี ไม่ร้อน ไม่เหนอะหนะ และไม่เสียทรง\n\nสกรีนลาย 2 สีบนพื้นขาว ให้ลายเด่นชัดและคมทุกรายละเอียด ทรงเสื้อใส่ได้ทั้งชายและหญิง มีให้เลือกตั้งแต่ไซซ์ S ถึง XL\n\nเหมาะกับใส่ไปสนามแข่ง ใส่ทำงานสบาย ๆ หรือเก็บเป็นของสะสมประจำฤดูกาล',
-    images: ['https://shop-image.readyplanet.com/GbzbOqqSlDsF4gXXnMNVXPb67zE=/af36057e92a140b09f19601ad53d9526', 'https://shop-image.readyplanet.com/Td6u7qb1OxfzccfLfLkboAFEk3I=/500x500/5f19f53f90624bee8b1307a1312e34ba', 'https://shop-image.readyplanet.com/2J0g8KkAzO9FMC2cSNS0no9-NB4=/500x500/ad9218b5a9ce4d978cb00f42922a4b1c', 'https://shop-image.readyplanet.com/jr-YjPE3-VdkW93jVJM1V_5wYCE=/500x500/f3c5f330acf34773bf12db4185d428f8'],
+    images: ['images/products/rod-1232648-1.jpg', 'images/products/rod-1232648-2.jpg', 'images/products/rod-1232648-3.jpg', 'images/products/rod-1232648-4.jpg'],
     price: 450, salePrice: 350, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-1),
   },
@@ -38,7 +38,7 @@ export const seedProducts: Product[] = [
     category: 'เสื้อผ้า',
     description:
       'เสื้อยืดคอกลม ROD ผลิตจากเนื้อผ้าซูปเปอร์ดราย ช่วยให้สวมใส่สบาย ระบายอากาศได้ดี ไม่ร้อน ไม่เหนอะหนะ และไม่เสียทรง\n\nสกรีนลายสีเดียวบนพื้นขาว เรียบง่าย ใส่ง่าย จับคู่กับกางเกงได้แทบทุกตัว ทรงเสื้อใส่ได้ทั้งชายและหญิง มีให้เลือกตั้งแต่ไซซ์ S ถึง XL\n\nเหมาะกับใส่ไปสนามแข่ง ใส่ทำงานสบาย ๆ หรือเก็บเป็นของสะสมประจำฤดูกาล',
-    images: ['https://shop-image.readyplanet.com/ACGPwguGvgmUrKLqmqb3EcUSyNg=/09cf9f3dbbae43bbb7e88168309605fa'],
+    images: ['images/products/rod-1232645-1.jpg'],
     price: 450, salePrice: 350, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-2),
   },
@@ -47,7 +47,7 @@ export const seedProducts: Product[] = [
     category: 'เสื้อผ้า',
     description:
       'เสื้อยืดคอกลม ROD ผลิตจากเนื้อผ้าซูปเปอร์ดราย ช่วยให้สวมใส่สบาย ระบายอากาศได้ดี ไม่ร้อน ไม่เหนอะหนะ และไม่เสียทรง\n\nสกรีนลายสีเดียวบนพื้นดำ ลุคเข้มดูดี ใส่แล้วไม่เลอะง่าย ทรงเสื้อใส่ได้ทั้งชายและหญิง มีให้เลือกตั้งแต่ไซซ์ S ถึง XL\n\nเหมาะกับใส่ไปสนามแข่ง ใส่ทำงานสบาย ๆ หรือเก็บเป็นของสะสมประจำฤดูกาล',
-    images: ['https://shop-image.readyplanet.com/H8n1LsEQ9qzXJBSAxfp8gzu9nKI=/2f44f507e0f745a88d443d6897391749'],
+    images: ['images/products/rod-1232643-1.jpg'],
     price: 450, salePrice: 350, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-3),
   },
@@ -56,7 +56,7 @@ export const seedProducts: Product[] = [
     category: 'หมวกและกระเป๋า',
     description:
       'หมวกแก๊ป ROD สีน้ำเงินกรมท่า ปักโลโก้ ROD ด้านหน้า โทนสีสุภาพ เข้ากับเสื้อผ้าได้แทบทุกชุด\n\nปรับขนาดได้ด้านหลังจึงใส่ได้แทบทุกคน ปีกหมวกโค้งช่วยบังแดดเวลาอยู่กลางแจ้ง\n\nเหมาะกับใส่ไปสนามแข่ง ขับรถทางไกล หรือใส่เที่ยวทั่วไป',
-    images: ['https://shop-image.readyplanet.com/6A6QCKGXWmk2OKk2SKLr-UEkA_w=/4d5987be01cf4f50a02b3880142005bb'],
+    images: ['images/products/rod-1232655-1.jpg'],
     price: 550, salePrice: 350, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-4),
   },
@@ -65,7 +65,7 @@ export const seedProducts: Product[] = [
     category: 'หมวกและกระเป๋า',
     description:
       'หมวกแก๊ป ROD สีขาว ปักโลโก้ ROD ด้านหน้า โทนสว่างใส่แล้วดูสดชื่น ไม่อมความร้อนกลางแดด\n\nปรับขนาดได้ด้านหลังจึงใส่ได้แทบทุกคน ปีกหมวกโค้งช่วยบังแดดเวลาอยู่กลางแจ้ง\n\nเหมาะกับใส่ไปสนามแข่ง ขับรถทางไกล หรือใส่เที่ยวทั่วไป',
-    images: ['https://shop-image.readyplanet.com/dqsvr2fUew3m7j5pZS2Ta8Eiv14=/75bcf60b01644897be8efa878b974750'],
+    images: ['images/products/rod-1232656-1.jpg'],
     price: 550, salePrice: 350, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-5),
   },
@@ -74,7 +74,7 @@ export const seedProducts: Product[] = [
     category: 'หมวกและกระเป๋า',
     description:
       'กระเป๋าผ้า ROD สกรีนลาย 2 สี ลายคมชัดสะดุดตา สะพายง่าย น้ำหนักเบา พับเก็บใส่กระเป๋าใบใหญ่ได้\n\nช่องเก็บของกว้าง ใส่ของใช้ประจำวัน หนังสือ หรือของซื้อของฝากได้สบาย สายสะพายยาวพอสำหรับสะพายบ่า\n\nใช้แทนถุงพลาสติกเวลาไปซื้อของ ช่วยลดขยะไปในตัว',
-    images: ['https://shop-image.readyplanet.com/8_-6Nd4bQ1sRmf4I0Qjl74FrDX4=/99aa7eeaab2c4d7589beeaa91014c828'],
+    images: ['images/products/rod-1232657-1.jpg'],
     price: 900, salePrice: 500, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-6),
   },
@@ -83,7 +83,7 @@ export const seedProducts: Product[] = [
     category: 'หมวกและกระเป๋า',
     description:
       'กระเป๋าผ้า ROD สกรีนลายสีเดียว ดูเรียบง่าย สะพายง่าย น้ำหนักเบา พับเก็บใส่กระเป๋าใบใหญ่ได้\n\nช่องเก็บของกว้าง ใส่ของใช้ประจำวัน หนังสือ หรือของซื้อของฝากได้สบาย สายสะพายยาวพอสำหรับสะพายบ่า\n\nใช้แทนถุงพลาสติกเวลาไปซื้อของ ช่วยลดขยะไปในตัว',
-    images: ['https://shop-image.readyplanet.com/g37x-jrdpmiBiAVk2Fqw8Hdt4_c=/a9b2b8ad84e74e6a9b59306eec66875a'],
+    images: ['images/products/rod-1232659-1.jpg'],
     price: 900, salePrice: 500, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-7),
   },
@@ -92,7 +92,7 @@ export const seedProducts: Product[] = [
     category: 'ของใช้',
     description:
       'แก้วเก็บความร้อน/เย็น รุ่นพิเศษจากความร่วมมือระหว่าง ROD และ Lock & Lock ตัวแก้วสแตนเลสสองชั้น เก็บอุณหภูมิเครื่องดื่มได้ยาวนานทั้งร้อนและเย็น\n\nฝาปิดแน่นช่วยกันหกเวลาพกใส่กระเป๋าหรือวางในรถ ผิวนอกไม่เกิดหยดน้ำเกาะ จับถนัดมือ ไม่ลื่น\n\nพกติดรถไว้ใช้ได้ทุกวัน หรือให้เป็นของขวัญก็ดูดีไม่น้อยหน้าใคร',
-    images: ['https://shop-image.readyplanet.com/-v-FVuZ2PBe2yZY65_sRp_HWc8Q=/ac1ea8332b8b43bab06f9046da92d607'],
+    images: ['images/products/rod-1232661-1.jpg'],
     price: 750, salePrice: 600, stock: 50,
     recommended: true, active: true, createdAt: isoOffset(-8),
   },
@@ -101,7 +101,7 @@ export const seedProducts: Product[] = [
     category: 'ของใช้',
     description:
       'ร่มกลับด้าน ROD ออกแบบให้พับเก็บโดยเอาด้านที่เปียกไว้ข้างใน น้ำจึงไม่หยดเลอะเวลาเก็บร่มเข้ามาในรถหรือในอาคาร\n\nเปิด-ปิดได้สะดวกแม้ยืนอยู่ข้างประตูรถ โครงร่มแข็งแรง ทรงร่มกว้างพอคลุมได้สบาย ๆ\n\nเหมาะกับคนขับรถเป็นประจำ ที่เบื่อปัญหาเบาะเปียกทุกครั้งที่ฝนตก',
-    images: ['https://shop-image.readyplanet.com/zN2gKTdM1n03izejTlKnkSHN6-s=/9b85f6dc99b24b46901b120ee9b11649'],
+    images: ['images/products/rod-1232686-1.jpg'],
     price: 580, salePrice: 450, stock: 50,
     recommended: false, active: true, createdAt: isoOffset(-9),
   },
@@ -110,7 +110,7 @@ export const seedProducts: Product[] = [
     category: 'ของที่ระลึก',
     description:
       'ชุดแลนยาร์ด ROD พร้อมขวดสเปรย์ สำหรับคล้องคอพกพาติดตัว หยิบใช้ได้ทันทีโดยไม่ต้องรื้อกระเป๋า\n\nสายแลนยาร์ดสกรีนโลโก้ ROD ตลอดเส้น พร้อมขวดสเปรย์ขนาดพกพาที่เติมน้ำยาที่ใช้ประจำได้เอง\n\nเหมาะกับพกไปงานอีเวนต์ ไปสนามแข่ง หรือใช้ในชีวิตประจำวัน',
-    images: ['https://shop-image.readyplanet.com/TH1m6PUJYkfsQEL2eHbChw26qO4=/698b616baef44166a42522f25571e591'],
+    images: ['images/products/rod-1232690-1.jpg'],
     price: 400, salePrice: 300, stock: 50,
     recommended: false, active: true, createdAt: isoOffset(-10),
   },
@@ -119,7 +119,7 @@ export const seedProducts: Product[] = [
     category: 'โปรโมชัน',
     description:
       'ชุดโปรโมชันราคาพิเศษ 999 บาท รวมสินค้าที่ระลึก ROD หลายชิ้นไว้ในชุดเดียว คุ้มกว่าการแยกซื้อทีละชิ้น\n\nเหมาะกับคนที่เพิ่งเริ่มสะสมของที่ระลึก ROD หรือซื้อเป็นของฝากให้เพื่อนที่ชอบรถ\n\nจำนวนจำกัดเฉพาะช่วงโปรโมชันเท่านั้น',
-    images: ['https://shop-image.readyplanet.com/5ceADEzzZ4_85opbjgU_WFRKijo=/0d181c1874f6401487ad264c35d19415'],
+    images: ['images/products/rod-1212772-1.jpg'],
     price: 1480, salePrice: 999, stock: 50,  // ราคาเต็มถอดมาจากค่าที่เพี้ยน ยังไม่ได้ยืนยันกับหน้าร้าน
     recommended: false, active: true, createdAt: isoOffset(-11),
   },
