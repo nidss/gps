@@ -67,7 +67,7 @@ export const seedBanners: Banner[] = [
   },
 ]
 
-/** ค่าตั้งต้นของ section ใหม่ — ใช้ร่วมกับฟอร์มเพิ่ม section ในหลังบ้าน */
+/** ค่าตั้งต้นของ section ใหม่ - ใช้ร่วมกับฟอร์มเพิ่ม section ในหลังบ้าน */
 export function blankHomeSection(id: string, sortOrder: number): HomeSection {
   return {
     id, kind: 'products', title: '', sortOrder, active: true,
@@ -154,7 +154,7 @@ export const seedNotifications: AppNotification[] = [
   },
 ]
 
-/** คำตอบอัตโนมัติตั้งต้นของบอทแชท — แอดมินแก้ไขได้ที่ /admin/chat */
+/** คำตอบอัตโนมัติตั้งต้นของบอทแชท - แอดมินแก้ไขได้ที่ /admin/chat */
 export const seedChatFaqs: ChatFaq[] = [
   {
     id: 'f01', sortOrder: 1, active: true,

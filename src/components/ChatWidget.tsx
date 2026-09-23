@@ -187,7 +187,7 @@ export function ChatWidget() {
                 </Button>
               </form>
               <p className="bg-white px-3 pb-2 text-center text-[11px] text-gp-ink-soft">
-                ระบบสาธิต — ข้อความเก็บไว้ในเบราว์เซอร์นี้เท่านั้น
+                ระบบสาธิต - ข้อความเก็บไว้ในเบราว์เซอร์นี้เท่านั้น
               </p>
             </>
           )}
@@ -197,7 +197,7 @@ export function ChatWidget() {
   )
 }
 
-/** ฟองข้อความ — ลูกค้าชิดขวา ฝั่งร้าน (บอท/แอดมิน) ชิดซ้าย */
+/** ฟองข้อความ - ลูกค้าชิดขวา ฝั่งร้าน (บอท/แอดมิน) ชิดซ้าย */
 function Bubble({ message }: { message: ChatMessage }) {
   const mine = message.from === 'customer'
   return (

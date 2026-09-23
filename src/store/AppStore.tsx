@@ -19,7 +19,7 @@ import {
   seedHomeSections, seedNotifications, seedProducts, seedUsers,
 } from '../lib/seed'
 
-/** ค่าจัดส่ง ยอดส่งฟรี และ VAT — ตัวจริงอยู่ใน lib/constants.ts */
+/** ค่าจัดส่ง ยอดส่งฟรี และ VAT - ตัวจริงอยู่ใน lib/constants.ts */
 export { FREE_SHIPPING_MIN, SHIPPING_FEE, VAT_RATE } from '../lib/constants'
 
 /**
@@ -77,7 +77,7 @@ function loadCategories(products: Product[]): Category[] {
   return derived
 }
 
-/** ข้อมูลแชท — ผู้ใช้เดิมที่ยังไม่มีได้บทสนทนาตัวอย่างและคำตอบอัตโนมัติตั้งต้น */
+/** ข้อมูลแชท - ผู้ใช้เดิมที่ยังไม่มีได้บทสนทนาตัวอย่างและคำตอบอัตโนมัติตั้งต้น */
 function readChat(): Pick<AppState, 'chats' | 'chatFaqs' | 'chatGuest'> {
   return {
     chats: read<ChatThread[]>(KEYS.chats, seedChats),
@@ -188,13 +188,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     function onStorage(e: StorageEvent) {
       const slice = SYNCED_SLICES.find(([key]) => key === e.key)
-      // newValue เป็น null เมื่ออีกแท็บกดรีเซ็ตข้อมูล — แท็บนั้นรีโหลดเอง ปล่อยแท็บนี้ไว้ตามเดิม
+      // newValue เป็น null เมื่ออีกแท็บกดรีเซ็ตข้อมูล - แท็บนั้นรีโหลดเอง ปล่อยแท็บนี้ไว้ตามเดิม
       if (!slice || e.newValue === null) return
       try {
         const value = JSON.parse(e.newValue)
         setState((prev) => ({ ...prev, [slice[1]]: value }))
       } catch {
-        /* ข้อมูลเสีย — ข้ามไป */
+        /* ข้อมูลเสีย - ข้ามไป */
       }
     }
     window.addEventListener('storage', onStorage)
@@ -247,7 +247,7 @@ export function useAuth() {
     [setState],
   )
 
-  /** สมัครสมาชิกใหม่ — คืนข้อความผิดพลาดถ้าอีเมลซ้ำ */
+  /** สมัครสมาชิกใหม่ - คืนข้อความผิดพลาดถ้าอีเมลซ้ำ */
   const register = useCallback(
     (input: { email: string; password: string; firstName: string; lastName: string; phone: string }):
       | { ok: true; user: User }
@@ -341,12 +341,12 @@ export function useCatalog() {
     [activeProducts],
   )
 
-  /** หมวดหมู่ทั้งหมดเรียงตามลำดับที่ตั้งไว้ — สำหรับหลังบ้าน */
+  /** หมวดหมู่ทั้งหมดเรียงตามลำดับที่ตั้งไว้ - สำหรับหลังบ้าน */
   const categoryList = useMemo(() => [...categoryRecords].sort(bySortOrder), [categoryRecords])
 
   /**
    * ชื่อหมวดหมู่ที่แสดงบนหน้าร้าน (เมนู ปุ่มลัด ตัวกรอง)
-   * เงื่อนไข: เปิดแสดง และมีสินค้าเปิดขายอยู่อย่างน้อย 1 ชิ้น — เรียงตามลำดับที่ตั้งไว้
+   * เงื่อนไข: เปิดแสดง และมีสินค้าเปิดขายอยู่อย่างน้อย 1 ชิ้น - เรียงตามลำดับที่ตั้งไว้
    */
   const categories = useMemo(() => {
     const inUse = new Set(activeProducts.map((p) => p.category))
@@ -355,7 +355,7 @@ export function useCatalog() {
 
   /**
    * แบนเนอร์ที่แสดงได้จริงบนหน้าแรก
-   * เงื่อนไข: เปิดใช้งาน และวันนี้อยู่ในช่วงวันที่กำหนด — เรียงตามลำดับที่ตั้งไว้
+   * เงื่อนไข: เปิดใช้งาน และวันนี้อยู่ในช่วงวันที่กำหนด - เรียงตามลำดับที่ตั้งไว้
    */
   const liveBanners = useMemo(() => {
     const today = todayKey()
@@ -425,7 +425,7 @@ export function useCatalog() {
     [categoryRecords, setCategories, setProducts],
   )
 
-  /** ลบหมวดหมู่ — ถ้ามีสินค้าอยู่ต้องระบุหมวดปลายทางเพื่อย้ายสินค้าไปก่อน */
+  /** ลบหมวดหมู่ - ถ้ามีสินค้าอยู่ต้องระบุหมวดปลายทางเพื่อย้ายสินค้าไปก่อน */
   const deleteCategory = useCallback(
     (id: string, moveProductsTo: string | null) => {
       const target = categoryRecords.find((c) => c.id === id)
@@ -446,7 +446,7 @@ export function useCatalog() {
   )
 
   /**
-   * ตรวจสอบคูปองกับยอดซื้อ — คืนส่วนลดและส่วนลดค่าส่ง
+   * ตรวจสอบคูปองกับยอดซื้อ - คืนส่วนลดและส่วนลดค่าส่ง
    * ยอดที่ส่งเข้ามาคือยอดสินค้าก่อนหักส่วนลด
    */
   const validateCoupon = useCallback(
@@ -490,10 +490,10 @@ export function useHomeSections() {
   const [sections, setSections] = useSlice('homeSections', KEYS.homeSections)
   const { activeProducts, recommendedProducts, categoryList, coupons } = useCatalog()
 
-  /** ทุก section เรียงตามลำดับ — สำหรับหลังบ้าน */
+  /** ทุก section เรียงตามลำดับ - สำหรับหลังบ้าน */
   const sorted = useMemo(() => [...sections].sort(bySortOrder), [sections])
 
-  /** section ที่เปิดใช้ เรียงตามลำดับ — สำหรับหน้าแรก */
+  /** section ที่เปิดใช้ เรียงตามลำดับ - สำหรับหน้าแรก */
   const liveSections = useMemo(() => sorted.filter((s) => s.active), [sorted])
 
   /** สินค้าที่ section ชนิด products จะแสดง (ตัดสินค้าที่ปิดขายหรือถูกลบออกแล้ว) */
@@ -529,7 +529,7 @@ export function useHomeSections() {
     [activeProducts, recommendedProducts, categoryList],
   )
 
-  /** คูปองของ section ชนิด coupon — null ถ้าไม่พบ ปิดใช้ หรือหมดอายุแล้ว (section จะไม่แสดง) */
+  /** คูปองของ section ชนิด coupon - null ถ้าไม่พบ ปิดใช้ หรือหมดอายุแล้ว (section จะไม่แสดง) */
   const resolveCoupon = useCallback(
     (section: HomeSection): Coupon | null => {
       const coupon = coupons.find((c) => c.code === section.couponCode)
@@ -825,7 +825,7 @@ export function useChat() {
     [state.users, state.currentUserId],
   )
 
-  /** เจ้าของห้องแชทของผู้ใช้ปัจจุบัน — สมาชิกใช้บัญชี ผู้เยี่ยมชมต้องกรอกชื่อก่อน (null = ยังไม่ได้กรอก) */
+  /** เจ้าของห้องแชทของผู้ใช้ปัจจุบัน - สมาชิกใช้บัญชี ผู้เยี่ยมชมต้องกรอกชื่อก่อน (null = ยังไม่ได้กรอก) */
   const owner = useMemo(() => {
     if (currentUser) {
       return { ownerId: currentUser.id, userId: currentUser.id, name: `${currentUser.firstName} ${currentUser.lastName}` }
@@ -844,7 +844,7 @@ export function useChat() {
     [myThread],
   )
 
-  /** ห้องทั้งหมด ใหม่สุดก่อน — สำหรับหลังบ้าน */
+  /** ห้องทั้งหมด ใหม่สุดก่อน - สำหรับหลังบ้าน */
   const threads = useMemo(() => [...chats].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [chats])
 
   /** ห้องที่มีข้อความลูกค้าที่แอดมินยังไม่ได้อ่าน */

@@ -72,7 +72,7 @@ export function Footer() {
           <div className="border-t border-white/10">
             <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between lg:px-6">
               <p>© {new Date().getFullYear()} Grandprix Online. สงวนลิขสิทธิ์.</p>
-              <p>เว็บไซต์สาธิต — ข้อมูลทั้งหมดเก็บในเบราว์เซอร์ของคุณเท่านั้น</p>
+              <p>เว็บไซต์สาธิต - ข้อมูลทั้งหมดเก็บในเบราว์เซอร์ของคุณเท่านั้น</p>
             </div>
           </div>
         </div>

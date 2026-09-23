@@ -48,7 +48,7 @@ export function AdminHomeSections() {
         }
       case 'coupon':
         return {
-          detail: `คูปอง ${section.couponCode || '—'}`,
+          detail: `คูปอง ${section.couponCode || '-'}`,
           hiddenReason: resolveCoupon(section) ? null : 'คูปองปิดใช้หรือหมดอายุ',
         }
       case 'products': {
@@ -101,7 +101,7 @@ export function AdminHomeSections() {
     <>
       <AdminPageHeader
         title="จัดการหน้าแรก"
-        description="section ทั้งหมดที่อยู่ใต้แบนเนอร์บนหน้าแรก — เรียงลำดับ ซ่อน หรือเพิ่ม section ใหม่ได้"
+        description="section ทั้งหมดที่อยู่ใต้แบนเนอร์บนหน้าแรก - เรียงลำดับ ซ่อน หรือเพิ่ม section ใหม่ได้"
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -200,7 +200,7 @@ export function AdminHomeSections() {
 
         {sections.length === 0 && (
           <p className="px-5 py-12 text-center text-sm text-gp-ink-soft">
-            หน้าแรกยังไม่มี section — กด “เพิ่ม section” เพื่อเริ่มต้น
+            หน้าแรกยังไม่มี section - กด “เพิ่ม section” เพื่อเริ่มต้น
           </p>
         )}
       </Card>
@@ -260,12 +260,12 @@ export function AdminHomeSections() {
                   value={editing.couponCode}
                   onChange={(e) => setEditing({ ...editing, couponCode: e.target.value })}
                 >
-                  <option value="">— เลือกคูปอง —</option>
+                  <option value="">- เลือกคูปอง -</option>
                   {coupons.map((c) => {
                     const expired = c.expiresAt < todayKey()
                     return (
                       <option key={c.code} value={c.code}>
-                        {c.code} — {c.description}
+                        {c.code} - {c.description}
                         {expired ? ' (หมดอายุแล้ว)' : !c.active ? ' (ปิดใช้)' : ` (ถึง ${thaiDate(c.expiresAt)})`}
                       </option>
                     )
@@ -327,7 +327,7 @@ function ProductSourceFields({
               value={section.categoryId ?? ''}
               onChange={(e) => onChange({ ...section, categoryId: e.target.value || null })}
             >
-              <option value="">— เลือกหมวดหมู่ —</option>
+              <option value="">- เลือกหมวดหมู่ -</option>
               {categoryList.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -359,7 +359,7 @@ function ProductSourceFields({
   )
 }
 
-/** เลือกสินค้าเองพร้อมจัดลำดับ — ซ้าย: ที่เลือกแล้ว, ขวา: ค้นหาเพื่อเพิ่ม */
+/** เลือกสินค้าเองพร้อมจัดลำดับ - ซ้าย: ที่เลือกแล้ว, ขวา: ค้นหาเพื่อเพิ่ม */
 function ManualProductPicker({
   productIds, onChange, error,
 }: { productIds: string[]; onChange: (ids: string[]) => void; error?: string }) {
@@ -394,7 +394,7 @@ function ManualProductPicker({
         </p>
         <div className="max-h-80 overflow-y-auto rounded-md border border-gp-line">
           {selected.length === 0 ? (
-            <p className="px-4 py-8 text-center text-xs text-gp-ink-soft">ยังไม่ได้เลือกสินค้า — กดเพิ่มจากรายการด้านขวา</p>
+            <p className="px-4 py-8 text-center text-xs text-gp-ink-soft">ยังไม่ได้เลือกสินค้า - กดเพิ่มจากรายการด้านขวา</p>
           ) : (
             <ul className="divide-y divide-gp-line">
               {selected.map((p, index) => (
@@ -408,7 +408,7 @@ function ManualProductPicker({
                   <Img src={p.images[0] ?? ''} alt="" className="h-10 w-10 shrink-0 rounded border border-gp-line object-cover" />
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-1 text-xs font-semibold text-gp-ink">{p.name}</p>
-                    <p className="text-xs text-gp-ink-soft">{p.active ? baht(effectivePrice(p.price, p.salePrice)) : 'ปิดขายอยู่ — ไม่แสดงบนหน้าแรก'}</p>
+                    <p className="text-xs text-gp-ink-soft">{p.active ? baht(effectivePrice(p.price, p.salePrice)) : 'ปิดขายอยู่ - ไม่แสดงบนหน้าแรก'}</p>
                   </div>
                   <button
                     type="button"

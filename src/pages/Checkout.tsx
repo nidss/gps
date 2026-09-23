@@ -179,7 +179,7 @@ export function Checkout() {
         {!isLoggedIn && (
           <div className="mb-6">
             <Alert tone="amber">
-              คุณกำลังสั่งซื้อแบบไม่เข้าสู่ระบบ —{' '}
+              คุณกำลังสั่งซื้อแบบไม่เข้าสู่ระบบ -{' '}
               <Link to="/login" className="font-bold underline">เข้าสู่ระบบ</Link> หรือ{' '}
               <Link to="/register" className="font-bold underline">สมัครสมาชิก</Link>{' '}
               เพื่อบันทึกที่อยู่และดูประวัติคำสั่งซื้อย้อนหลัง

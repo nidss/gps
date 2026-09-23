@@ -107,7 +107,7 @@ export function AdminProducts() {
           />
         </div>
 
-        {/* สลับมุมมอง — การ์ดเห็นรูปชัด ตารางเทียบตัวเลขได้เร็ว */}
+        {/* สลับมุมมอง - การ์ดเห็นรูปชัด ตารางเทียบตัวเลขได้เร็ว */}
         <div className="ml-auto inline-flex rounded-md border border-gp-line bg-white p-1">
           {([
             { mode: 'grid', label: 'มุมมองการ์ด', icon: GridIcon },
@@ -185,7 +185,7 @@ export function AdminProducts() {
                           {percent > 0 && <span className="ml-1 text-xs">(−{percent}%)</span>}
                         </span>
                       ) : (
-                        <span className="text-gp-ink-soft">—</span>
+                        <span className="text-gp-ink-soft">-</span>
                       )}
                     </td>
                     <td className="tnum px-4 py-3 text-right">
@@ -276,7 +276,7 @@ export function AdminProducts() {
                   value={editing.category}
                   onChange={(e) => setEditing({ ...editing, category: e.target.value })}
                 >
-                  <option value="">— เลือกหมวดหมู่ —</option>
+                  <option value="">- เลือกหมวดหมู่ -</option>
                   {categoryList.map((c) => (
                     <option key={c.id} value={c.name}>{c.name}</option>
                   ))}

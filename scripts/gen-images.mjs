@@ -24,7 +24,7 @@ const speed = (id, color) => `
     <rect width="3" height="26" fill="${color}"/>
   </pattern>`
 
-/** รูปสินค้า 800x800 — 3 โทนต่อสินค้า 1 ชิ้น */
+/** รูปสินค้า 800x800 - 3 โทนต่อสินค้า 1 ชิ้น */
 function productSvg(label, code, variant) {
   const themes = [
     { bg: LIGHT, band: RED, band2: INK, text: INK, sub: RED, lines: 'rgba(51,57,70,0.07)', chk: 'rgba(51,57,70,0.12)' },
@@ -55,7 +55,7 @@ function productSvg(label, code, variant) {
 }
 
 /**
- * แบนเนอร์ hero 1600x640 — เป็นภาพกราฟิกล้วน ไม่มีตัวอักษรฝังในไฟล์
+ * แบนเนอร์ hero 1600x640 - เป็นภาพกราฟิกล้วน ไม่มีตัวอักษรฝังในไฟล์
  * เพราะหัวข้อและคำโปรยถูกวางทับด้วย HTML (แก้ไขได้จากระบบหลังบ้าน)
  */
 function bannerSvg(tone) {

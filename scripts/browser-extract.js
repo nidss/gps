@@ -13,7 +13,7 @@
  *   2. กด F12 เปิด DevTools แล้วไปแท็บ Console
  *   3. วางโค้ดทั้งไฟล์นี้ลงไป กด Enter แล้วรอจนขึ้น "เสร็จแล้ว"
  *      (ใช้เวลาประมาณ 3–5 วินาทีต่อสินค้าหนึ่งชิ้น)
- *   4. ผลลัพธ์จะถูกคัดลอกลงคลิปบอร์ดให้อัตโนมัติ — เอามาวางในแชทได้เลย
+ *   4. ผลลัพธ์จะถูกคัดลอกลงคลิปบอร์ดให้อัตโนมัติ - เอามาวางในแชทได้เลย
  *
  * สคริปต์นี้แค่อ่านหน้าเว็บในเบราว์เซอร์ของคุณเอง ไม่ส่งข้อมูลไปที่ไหน
  */
@@ -108,7 +108,7 @@
 
   const list = [...links].slice(0, LIMIT)
   if (list.length === 0) {
-    console.warn('หาลิงก์สินค้าไม่เจอ — ส่ง HTML ของหน้านี้มาให้ปรับ selector แทนครับ')
+    console.warn('หาลิงก์สินค้าไม่เจอ - ส่ง HTML ของหน้านี้มาให้ปรับ selector แทนครับ')
     return
   }
   console.log(`พบสินค้า ${list.length} รายการ กำลังเปิดทีละหน้าเพื่อรอ JavaScript เรนเดอร์...`)
@@ -220,14 +220,14 @@
       // หน้าที่ให้ 404 หรือหน้า error จะไม่มีทั้งราคาและคำบรรยาย ให้ข้ามไป
       // ไม่งั้นจะได้สินค้าขยะชื่อแปลก ๆ อย่าง "Error response" ติดมาด้วย
       if (!item.name || (!item.price && !item.description)) {
-        console.warn(`  ${label} ข้าม — ไม่ใช่หน้าสินค้า (${url})`)
+        console.warn(`  ${label} ข้าม - ไม่ใช่หน้าสินค้า (${url})`)
         await sleep(GAP)
         continue
       }
 
       products.push(item)
       const gotDesc = item.description ? `คำบรรยาย ${item.description.length} ตัวอักษร` : 'ไม่ได้คำบรรยาย'
-      console.log(`  ${label} ${item.name || '(ไม่มีชื่อ)'} — ${item.price ?? '?'} บาท · ${gotDesc}`)
+      console.log(`  ${label} ${item.name || '(ไม่มีชื่อ)'} - ${item.price ?? '?'} บาท · ${gotDesc}`)
     } catch (err) {
       if (/X-Frame-Options|อ่านเนื้อหาใน iframe/.test(err.message)) iframeBlocked = true
       console.warn(`  ${label} ผิดพลาด: ${err.message}`)
@@ -251,7 +251,7 @@
   }
 
   const json = JSON.stringify(result, null, 2)
-  console.log(`\nเสร็จแล้ว — ได้สินค้า ${products.length} รายการ (มีคำบรรยาย ${withDesc} รายการ)`)
+  console.log(`\nเสร็จแล้ว - ได้สินค้า ${products.length} รายการ (มีคำบรรยาย ${withDesc} รายการ)`)
   try {
     copy(json)
     console.log('คัดลอกลงคลิปบอร์ดให้แล้ว เอาไปวางในแชทได้เลย')

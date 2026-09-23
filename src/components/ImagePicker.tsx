@@ -27,7 +27,7 @@ export function SingleImagePicker({
   async function handleFile(file: File | undefined) {
     if (!file) return
     if (file.size > MAX_FILE_BYTES) {
-      setError('ไฟล์ใหญ่เกิน 1 MB — กรุณาย่อรูปก่อนอัปโหลด (พื้นที่เก็บในเบราว์เซอร์จำกัด)')
+      setError('ไฟล์ใหญ่เกิน 1 MB - กรุณาย่อรูปก่อนอัปโหลด (พื้นที่เก็บในเบราว์เซอร์จำกัด)')
       return
     }
     setError('')
@@ -81,7 +81,7 @@ export function SingleImagePicker({
   )
 }
 
-/** เลือกได้หลายรูป พร้อมจัดลำดับ (ใช้กับสินค้า — รูปแรกคือรูปปก) */
+/** เลือกได้หลายรูป พร้อมจัดลำดับ (ใช้กับสินค้า - รูปแรกคือรูปปก) */
 export function MultiImagePicker({
   images, onChange,
 }: { images: string[]; onChange: (next: string[]) => void }) {
@@ -172,7 +172,7 @@ export function MultiImagePicker({
         </ul>
       ) : (
         <p className="mb-3 rounded-md border border-dashed border-gp-line px-4 py-6 text-center text-sm text-gp-ink-soft">
-          ยังไม่มีรูปสินค้า — เพิ่มได้มากกว่า 1 รูป รูปแรกจะถูกใช้เป็นรูปปก
+          ยังไม่มีรูปสินค้า - เพิ่มได้มากกว่า 1 รูป รูปแรกจะถูกใช้เป็นรูปปก
         </p>
       )}
 

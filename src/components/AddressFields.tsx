@@ -16,7 +16,7 @@ export interface AddressErrors {
   postcode?: string
 }
 
-/** ตรวจความถูกต้องของที่อยู่ — คืนอ็อบเจ็กต์ว่างถ้าผ่านทั้งหมด */
+/** ตรวจความถูกต้องของที่อยู่ - คืนอ็อบเจ็กต์ว่างถ้าผ่านทั้งหมด */
 export function validateAddress(address: Address, nameLabel = 'ชื่อผู้รับ'): AddressErrors {
   const errors: AddressErrors = {}
   if (!address.name.trim()) errors.name = `กรุณากรอก${nameLabel}`

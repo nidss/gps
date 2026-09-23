@@ -47,7 +47,7 @@ export interface Product {
   images: string[]
   /** ราคาเต็ม (บาท) */
   price: number
-  /** ราคาลด (บาท) — null คือไม่ลดราคา */
+  /** ราคาลด (บาท) - null คือไม่ลดราคา */
   salePrice: number | null
   /** จำนวนสินค้าคงเหลือ */
   stock: number
@@ -59,7 +59,7 @@ export interface Product {
 
 /**
  * หมวดหมู่สินค้า
- * สินค้าอ้างอิงหมวดด้วยชื่อ (Product.category) ไม่ใช่ id — เปลี่ยนชื่อหมวดแล้วต้องอัปเดตสินค้าตาม
+ * สินค้าอ้างอิงหมวดด้วยชื่อ (Product.category) ไม่ใช่ id - เปลี่ยนชื่อหมวดแล้วต้องอัปเดตสินค้าตาม
  */
 export interface Category {
   id: string
@@ -92,7 +92,7 @@ export type HomeSectionKind = 'categories' | 'coupon' | 'products'
 export type ProductSource = 'recommended' | 'sale' | 'new' | 'category' | 'manual'
 
 /**
- * section บนหน้าแรก — มีฟิลด์ครบทุกตัวเสมอไม่ว่าชนิดไหน
+ * section บนหน้าแรก - มีฟิลด์ครบทุกตัวเสมอไม่ว่าชนิดไหน
  * ฟอร์มหลังบ้านจึงสลับชนิดไปมาได้โดยไม่ต้องแปลงโครงข้อมูล
  */
 export interface HomeSection {
@@ -107,7 +107,7 @@ export interface HomeSection {
   source: ProductSource
   /** ใช้เมื่อ source = category */
   categoryId: string | null
-  /** ใช้เมื่อ source = manual — แสดงตามลำดับในอาร์เรย์ */
+  /** ใช้เมื่อ source = manual - แสดงตามลำดับในอาร์เรย์ */
   productIds: string[]
   /** จำนวนสินค้าสูงสุดที่แสดง */
   limit: number
@@ -158,7 +158,7 @@ export interface Order {
   customerPhone: string
   lines: OrderLine[]
   shipping: Address
-  /** ข้อมูลใบกำกับภาษี — null คือไม่ขอออกใบกำกับภาษี */
+  /** ข้อมูลใบกำกับภาษี - null คือไม่ขอออกใบกำกับภาษี */
   tax: TaxInfo | null
   couponCode: string | null
   /** ยอดรวมสินค้าก่อนหักส่วนลด */

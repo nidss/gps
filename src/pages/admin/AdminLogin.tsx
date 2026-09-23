@@ -86,7 +86,7 @@ export function AdminLogin() {
             <Link to="/" className="hover:text-white">← กลับไปหน้าร้าน</Link>
           </p>
           <p className="mt-2 text-center text-[11px] leading-relaxed text-white/35">
-            เว็บไซต์สาธิตแบบ static — การตรวจสิทธิ์ทำฝั่งเบราว์เซอร์เท่านั้น
+            เว็บไซต์สาธิตแบบ static - การตรวจสิทธิ์ทำฝั่งเบราว์เซอร์เท่านั้น
             <br />
             ไม่ควรใช้รูปแบบนี้กับข้อมูลจริง
           </p>
