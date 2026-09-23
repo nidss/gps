@@ -3,11 +3,12 @@ import { useEffect } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth, useChat, useResetDemoData } from '../store/AppStore'
 import { asset } from '../lib/asset'
-import { BoxIcon, ChatIcon, DashboardIcon, ImageIcon, LayoutIcon, LogoutIcon, TagIcon, UsersIcon } from './Icons'
+import { BoxIcon, ChatIcon, DashboardIcon, ImageIcon, LayoutIcon, LogoutIcon, ReceiptIcon, TagIcon, UsersIcon } from './Icons'
 import { Button, cx } from './ui'
 
 const menu = [
   { to: '/admin', label: 'ภาพรวมยอดขาย', icon: DashboardIcon, end: true },
+  { to: '/admin/orders', label: 'คำสั่งซื้อทั้งหมด', icon: ReceiptIcon, end: false },
   { to: '/admin/banners', label: 'จัดการแบนเนอร์', icon: ImageIcon, end: false },
   { to: '/admin/home', label: 'จัดการหน้าแรก', icon: LayoutIcon, end: false },
   { to: '/admin/products', label: 'จัดการสินค้า', icon: BoxIcon, end: false },

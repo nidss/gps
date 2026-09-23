@@ -25,6 +25,7 @@ import { AdminMembers } from './pages/admin/AdminMembers'
 import { AdminCategories } from './pages/admin/AdminCategories'
 import { AdminHomeSections } from './pages/admin/AdminHomeSections'
 import { AdminChat } from './pages/admin/AdminChat'
+import { AdminOrders } from './pages/admin/AdminOrders'
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
             {/* ระบบหลังบ้าน */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
+              <Route path="orders" element={<AdminOrders />} />
               <Route path="banners" element={<AdminBanners />} />
               <Route path="home" element={<AdminHomeSections />} />
               <Route path="products" element={<AdminProducts />} />

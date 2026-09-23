@@ -158,7 +158,12 @@ export function Dashboard() {
         <Card className="overflow-hidden xl:col-span-3">
           <div className="flex items-center justify-between gap-3 border-b border-gp-line px-5 py-4">
             <h2 className="text-base font-bold text-gp-ink">คำสั่งซื้อล่าสุด</h2>
-            <span className="text-xs text-gp-ink-soft">เปลี่ยนสถานะได้จากช่องด้านขวา</span>
+            <div className="flex items-center gap-4">
+              <span className="hidden text-xs text-gp-ink-soft sm:inline">เปลี่ยนสถานะได้จากช่องด้านขวา</span>
+              <Link to="/admin/orders" className="shrink-0 text-sm font-semibold text-gp-red hover:underline">
+                ดูทั้งหมด →
+              </Link>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

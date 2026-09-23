@@ -175,6 +175,38 @@ export interface Order {
   paymentMethod: PaymentMethod
   status: OrderStatus
   createdAt: string
+  /** ข้อมูลพัสดุจากผู้ให้บริการขนส่ง - ไม่มี/null คือยังไม่ได้ส่งพัสดุ (ออเดอร์เก่าก่อนมีระบบขนส่งไม่มีฟิลด์นี้) */
+  shipment?: Shipment | null
+}
+
+// ── การจัดส่ง ───────────────────────────────────────────────────────
+
+/**
+ * สถานะพัสดุ (ใช้ชุดเดียวกันทุกผู้ให้บริการ - adapter ของแต่ละเจ้าต้องแปลงสถานะของตัวเองมาเป็นชุดนี้)
+ * booking = สั่งส่งแล้วแต่ยังรอเลขพัสดุจากผู้ให้บริการ
+ */
+export type ShipmentStatus =
+  | 'booking' | 'created' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'failed'
+
+export interface ShipmentEvent {
+  status: ShipmentStatus
+  description: string
+  location: string
+  at: string
+}
+
+export interface Shipment {
+  /** id ของผู้ให้บริการขนส่งใน lib/shipping.ts */
+  provider: string
+  /** เลขพัสดุ - ว่างระหว่างสถานะ booking */
+  trackingNo: string
+  status: ShipmentStatus
+  /** ประวัติการเคลื่อนไหวของพัสดุ เก่าสุดก่อน */
+  events: ShipmentEvent[]
+  createdAt: string
+  updatedAt: string
+  /** เวลาที่จะถามสถานะจากผู้ให้บริการครั้งถัดไป - null คือจบแล้ว ไม่ต้องถามอีก */
+  nextCheckAt: string | null
 }
 
 export interface AppNotification {

@@ -14,6 +14,7 @@ import { discountPercent, effectivePrice, todayKey } from '../lib/format'
 import { orderCode, uid } from '../lib/id'
 import { bySortOrder, moveBySortOrder } from '../lib/sortOrder'
 import { botReply } from '../lib/chatBot'
+import { SHIPMENT_TICK_MS, applyShipment, shipmentJob, withOrderStatus } from '../lib/shipping'
 import {
   buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedChatFaqs, seedChats, seedCoupons,
   seedHomeSections, seedNotifications, seedProducts, seedUsers,
@@ -201,8 +202,59 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
+  useShipmentSync(state.adminLoggedIn, setState)
+
   const value = useMemo(() => ({ state, setState }), [state])
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+}
+
+/**
+ * วนถามสถานะพัสดุจากผู้ให้บริการขนส่ง แล้วเขียนผลลงออเดอร์ (lib/shipping.ts)
+ * ทำงานเฉพาะเบราว์เซอร์ที่ล็อกอินหลังบ้าน - ลูกค้าหน้าร้านไม่ต้องยิงไปถามขนส่งเอง
+ * แท็บอื่นเห็นการเปลี่ยนแปลงผ่าน event storage ของ slice orders ตามปกติ
+ */
+function useShipmentSync(enabled: boolean, setState: React.Dispatch<React.SetStateAction<AppState>>) {
+  useEffect(() => {
+    if (!enabled) return
+    // ออเดอร์ที่กำลังรอผลจากผู้ให้บริการ กันยิงซ้ำระหว่างรอ
+    const busy = new Set<string>()
+
+    function tick() {
+      const now = new Date()
+      // อ่านจาก localStorage สด ๆ แทน state เพราะอาจมีแท็บหลังบ้านอื่นเพิ่งอัปเดตพัสดุไป
+      for (const order of read<Order[]>(KEYS.orders, [])) {
+        if (busy.has(order.id)) continue
+        const job = shipmentJob(order, now)
+        if (!job) continue
+        busy.add(order.id)
+        const before = order.shipment
+        job()
+          .then((shipment) => {
+            setState((prev) => {
+              let changed = false
+              const orders = prev.orders.map((o) => {
+                if (o.id !== order.id) return o
+                const next = applyShipment(o, before, shipment)
+                if (!next) return o
+                changed = true
+                return next
+              })
+              if (!changed) return prev
+              write(KEYS.orders, orders)
+              return { ...prev, orders }
+            })
+          })
+          .catch(() => {
+            /* ผู้ให้บริการตอบไม่สำเร็จ - รอบหน้าจะลองใหม่เอง */
+          })
+          .finally(() => busy.delete(order.id))
+      }
+    }
+
+    tick()
+    const timer = window.setInterval(tick, SHIPMENT_TICK_MS)
+    return () => window.clearInterval(timer)
+  }, [enabled, setState])
 }
 
 function useApp() {
@@ -712,7 +764,8 @@ export function useOrders() {
 
   const updateStatus = useCallback(
     (orderId: string, status: OrderStatus) => {
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)))
+      // เปลี่ยนเป็น "จัดส่งแล้ว" ครั้งแรกจะสั่งส่งพัสดุกับผู้ให้บริการขนส่งด้วย
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? withOrderStatus(o, status) : o)))
     },
     [setOrders],
   )

@@ -140,3 +140,14 @@ input[type='number'] {
     animation: gp-badge-pop 420ms ease-out;
   }
 }
+
+/* ── แถวคำสั่งซื้อที่สถานะพัสดุเพิ่งอัปเดต (หน้าคำสั่งซื้อทั้งหมด) ────────
+   เปลี่ยนแค่สีพื้นอยู่กับที่ ไม่มีการเคลื่อนที่ จึงใช้ได้ทั้งโหมดลดการเคลื่อนไหว */
+@keyframes gp-flash {
+  0%, 40% { background-color: rgba(245, 158, 11, 0.18); }
+  100% { background-color: transparent; }
+}
+
+.gp-flash {
+  animation: gp-flash 2.4s ease-out;
+}
