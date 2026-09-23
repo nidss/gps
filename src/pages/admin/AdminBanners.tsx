@@ -111,7 +111,10 @@ export function AdminBanners() {
                           className="h-12 w-24 shrink-0 rounded-md border border-gp-line object-cover"
                         />
                         <div className="min-w-0">
-                          <p className="line-clamp-1 font-semibold text-gp-ink">{banner.title}</p>
+                          <p className="line-clamp-1 font-semibold text-gp-ink">
+                            {banner.title}
+                            {banner.hideText && <Badge tone="blue" className="ml-2 align-middle">รูปล้วน</Badge>}
+                          </p>
                           <p className="line-clamp-1 text-xs text-gp-ink-soft">{banner.subtitle}</p>
                           <p className="mt-0.5 text-xs text-gp-ink-soft">
                             ปุ่ม “{banner.ctaLabel}” → {banner.ctaLink}
@@ -181,14 +184,19 @@ export function AdminBanners() {
       >
         {editing && (
           <form id="banner-form" onSubmit={handleSave} noValidate className="grid gap-4">
-            <Field label="รูปภาพแบนเนอร์" required error={errors.image} hint="แนะนำอัตราส่วน 1600 × 640 พิกเซล">
+            <Field label="รูปภาพแบนเนอร์" required error={errors.image} hint="สัดส่วน 5:2 เช่น 1600 × 640 พิกเซล - แสดงเต็มรูปทุกขนาดจอ (สัดส่วนอื่นจะถูกตัดขอบให้พอดีกรอบ)">
               <SingleImagePicker
                 value={editing.image}
                 onChange={(image) => setEditing({ ...editing, image })}
               />
             </Field>
 
-            <Field label="หัวข้อ" required error={errors.title}>
+            <Field
+              label="หัวข้อ"
+              required
+              error={errors.title}
+              hint={editing.hideText ? 'ไม่แสดงบนรูป แต่ใช้เป็นคำอธิบายรูปและชื่อในรายการแบนเนอร์' : undefined}
+            >
               <Input
                 value={editing.title}
                 onChange={(e) => setEditing({ ...editing, title: e.target.value })}
@@ -243,6 +251,13 @@ export function AdminBanners() {
                 />
               </Field>
             </div>
+
+            <Checkbox
+              checked={editing.hideText ?? false}
+              onChange={(hideText) => setEditing({ ...editing, hideText })}
+              label="ซ่อนหัวข้อ คำโปรย และปุ่มที่ทับรูป"
+              description="ใช้กับรูปที่ออกแบบข้อความมาในรูปแล้ว - แสดงรูปล้วน และทั้งรูปกดไปที่ลิงก์ปลายทางแทนปุ่ม"
+            />
 
             <Checkbox
               checked={editing.active}
