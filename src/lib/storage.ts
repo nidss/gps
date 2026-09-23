@@ -7,6 +7,7 @@ const PREFIX = 'gpx:v1:'
 export const KEYS = {
   products: `${PREFIX}products`,
   banners: `${PREFIX}banners`,
+  categories: `${PREFIX}categories`,
   coupons: `${PREFIX}coupons`,
   users: `${PREFIX}users`,
   orders: `${PREFIX}orders`,

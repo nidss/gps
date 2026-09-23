@@ -6,14 +6,16 @@ import {
   type ReactNode,
 } from 'react'
 import type {
-  Address, AppNotification, Banner, CartItem, Coupon, Order, OrderStatus,
+  Address, AppNotification, Banner, CartItem, Category, Coupon, Order, OrderStatus,
   PaymentMethod, Product, TaxInfo, User,
 } from '../types'
 import { KEYS, clearAll, hashPassword, read, write } from '../lib/storage'
 import { effectivePrice, todayKey } from '../lib/format'
 import { orderCode, uid } from '../lib/id'
+import { bySortOrder, moveBySortOrder } from '../lib/sortOrder'
 import {
-  buildSeedOrders, seedBanners, seedCoupons, seedNotifications, seedProducts, seedUsers,
+  buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedCoupons, seedNotifications,
+  seedProducts, seedUsers,
 } from '../lib/seed'
 
 /** ค่าจัดส่งมาตรฐาน และยอดซื้อขั้นต่ำที่ส่งฟรี */
@@ -32,6 +34,7 @@ export const ADMIN_PASSWORD = 'admin1234'
 
 interface AppState {
   products: Product[]
+  categories: Category[]
   banners: Banner[]
   coupons: Coupon[]
   users: User[]
@@ -58,12 +61,26 @@ const AppContext = createContext<{
  */
 const CATALOG_VERSION = 2
 
+/**
+ * หมวดหมู่ของผู้ใช้ที่เข้าเว็บมาก่อนจะมีหน้าจัดการหมวดหมู่ยังไม่มีข้อมูลนี้ในเครื่อง
+ * จึงสร้างจากสินค้าที่เก็บอยู่ (รวมสินค้าที่แอดมินเพิ่มเอง) แล้วบันทึกไว้เลย
+ * เพื่อให้ id หมวดคงที่ ไม่เปลี่ยนไปตามสินค้าในการโหลดครั้งต่อ ๆ ไป
+ */
+function loadCategories(products: Product[]): Category[] {
+  const stored = read<Category[] | null>(KEYS.categories, null)
+  if (stored) return stored
+  const derived = categoriesFromProducts(products)
+  write(KEYS.categories, derived)
+  return derived
+}
+
 /** โหลดข้อมูลจาก localStorage ครั้งแรก พร้อมใส่ข้อมูลตัวอย่างถ้ายังไม่เคยมี */
 function loadInitialState(): AppState {
   const seeded = read<boolean>(KEYS.seeded, false)
   if (!seeded) {
     const orders = buildSeedOrders(seedProducts, seedUsers)
     write(KEYS.products, seedProducts)
+    write(KEYS.categories, seedCategories)
     write(KEYS.banners, seedBanners)
     write(KEYS.coupons, seedCoupons)
     write(KEYS.users, seedUsers)
@@ -72,7 +89,7 @@ function loadInitialState(): AppState {
     write(KEYS.seeded, true)
     write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
-      products: seedProducts, banners: seedBanners, coupons: seedCoupons,
+      products: seedProducts, categories: seedCategories, banners: seedBanners, coupons: seedCoupons,
       users: seedUsers, orders, notifications: seedNotifications,
       cart: read<CartItem[]>(KEYS.cart, []),
       currentUserId: read<string | null>(KEYS.session, null),
@@ -80,11 +97,12 @@ function loadInitialState(): AppState {
     }
   }
   // เคยเข้าเว็บมาแล้ว แต่แคตตาล็อกในเครื่องเป็นรุ่นเก่า ให้อัปเดตเฉพาะ
-  // สินค้า แบนเนอร์ และคูปอง ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
+  // สินค้า หมวดหมู่ แบนเนอร์ และคูปอง ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
   // ซึ่งเป็นข้อมูลที่ผู้ใช้สร้างเองยังเก็บไว้เหมือนเดิม
   const storedVersion = read<number>(KEYS.catalogVersion, 1)
   if (storedVersion !== CATALOG_VERSION) {
     write(KEYS.products, seedProducts)
+    write(KEYS.categories, seedCategories)
     write(KEYS.banners, seedBanners)
     write(KEYS.coupons, seedCoupons)
     // ตะกร้าต้องล้างทิ้ง เพราะเก็บไว้แค่รหัสสินค้า ไม่ได้เก็บราคา
@@ -94,6 +112,7 @@ function loadInitialState(): AppState {
     write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
       products: seedProducts,
+      categories: seedCategories,
       banners: seedBanners,
       coupons: seedCoupons,
       users: read<User[]>(KEYS.users, seedUsers),
@@ -105,8 +124,10 @@ function loadInitialState(): AppState {
     }
   }
 
+  const products = read<Product[]>(KEYS.products, seedProducts)
   return {
-    products: read<Product[]>(KEYS.products, seedProducts),
+    products,
+    categories: loadCategories(products),
     banners: read<Banner[]>(KEYS.banners, seedBanners),
     coupons: read<Coupon[]>(KEYS.coupons, seedCoupons),
     users: read<User[]>(KEYS.users, seedUsers),
@@ -118,8 +139,42 @@ function loadInitialState(): AppState {
   }
 }
 
+/** คีย์ใน localStorage ที่ตรงกับ state แต่ละส่วน ใช้ซิงก์ข้อมูลระหว่างแท็บ */
+const SYNCED_SLICES: Array<[string, keyof AppState]> = [
+  [KEYS.products, 'products'],
+  [KEYS.categories, 'categories'],
+  [KEYS.banners, 'banners'],
+  [KEYS.coupons, 'coupons'],
+  [KEYS.users, 'users'],
+  [KEYS.orders, 'orders'],
+  [KEYS.notifications, 'notifications'],
+  [KEYS.cart, 'cart'],
+  [KEYS.session, 'currentUserId'],
+  [KEYS.adminSession, 'adminLoggedIn'],
+]
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(loadInitialState)
+
+  // เปิดหลายแท็บพร้อมกัน (เช่น หน้าร้านกับหลังบ้าน) ให้เห็นข้อมูลที่อีกแท็บแก้ทันที
+  // และกันแท็บที่ถือข้อมูลเก่าอยู่เขียนทับของใหม่ในครั้งถัดไปที่บันทึก
+  // event นี้ยิงเฉพาะแท็บอื่น ไม่ยิงในแท็บที่เป็นคนเขียนเอง
+  useEffect(() => {
+    function onStorage(e: StorageEvent) {
+      const slice = SYNCED_SLICES.find(([key]) => key === e.key)
+      // newValue เป็น null เมื่ออีกแท็บกดรีเซ็ตข้อมูล — แท็บนั้นรีโหลดเอง ปล่อยแท็บนี้ไว้ตามเดิม
+      if (!slice || e.newValue === null) return
+      try {
+        const value = JSON.parse(e.newValue)
+        setState((prev) => ({ ...prev, [slice[1]]: value }))
+      } catch {
+        /* ข้อมูลเสีย — ข้ามไป */
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const value = useMemo(() => ({ state, setState }), [state])
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
@@ -242,6 +297,7 @@ export function useAuth() {
 
 export function useCatalog() {
   const [products, setProducts] = useSlice('products', KEYS.products)
+  const [categoryRecords, setCategories] = useSlice('categories', KEYS.categories)
   const [banners, setBanners] = useSlice('banners', KEYS.banners)
   const [coupons] = useSlice('coupons', KEYS.coupons)
 
@@ -259,10 +315,17 @@ export function useCatalog() {
     [activeProducts],
   )
 
-  const categories = useMemo(
-    () => Array.from(new Set(activeProducts.map((p) => p.category))).sort(),
-    [activeProducts],
-  )
+  /** หมวดหมู่ทั้งหมดเรียงตามลำดับที่ตั้งไว้ — สำหรับหลังบ้าน */
+  const categoryList = useMemo(() => [...categoryRecords].sort(bySortOrder), [categoryRecords])
+
+  /**
+   * ชื่อหมวดหมู่ที่แสดงบนหน้าร้าน (เมนู ปุ่มลัด ตัวกรอง)
+   * เงื่อนไข: เปิดแสดง และมีสินค้าเปิดขายอยู่อย่างน้อย 1 ชิ้น — เรียงตามลำดับที่ตั้งไว้
+   */
+  const categories = useMemo(() => {
+    const inUse = new Set(activeProducts.map((p) => p.category))
+    return categoryList.filter((c) => c.active && inUse.has(c.name)).map((c) => c.name)
+  }, [categoryList, activeProducts])
 
   /**
    * แบนเนอร์ที่แสดงได้จริงบนหน้าแรก
@@ -272,7 +335,7 @@ export function useCatalog() {
     const today = todayKey()
     return banners
       .filter((b) => b.active && b.startDate <= today && today <= b.endDate)
-      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .sort(bySortOrder)
   }, [banners])
 
   const saveProduct = useCallback(
@@ -310,17 +373,50 @@ export function useCatalog() {
   /** สลับลำดับการแสดงแบนเนอร์ขึ้น/ลงหนึ่งขั้น */
   const moveBanner = useCallback(
     (id: string, direction: -1 | 1) => {
-      setBanners((prev) => {
-        const sorted = [...prev].sort((a, b) => a.sortOrder - b.sortOrder)
-        const index = sorted.findIndex((b) => b.id === id)
-        const target = index + direction
-        if (index < 0 || target < 0 || target >= sorted.length) return prev
-        ;[sorted[index], sorted[target]] = [sorted[target], sorted[index]]
-        // เขียนลำดับใหม่ให้เรียงต่อเนื่อง 1..n กันเลขซ้ำ
-        return sorted.map((b, i) => ({ ...b, sortOrder: i + 1 }))
-      })
+      setBanners((prev) => moveBySortOrder(prev, id, direction))
     },
     [setBanners],
+  )
+
+  /**
+   * บันทึกหมวดหมู่ ถ้าเป็นการเปลี่ยนชื่อ สินค้าทุกตัวในหมวดเดิมจะย้ายตามไปใช้ชื่อใหม่
+   * เพราะสินค้าอ้างอิงหมวดด้วยชื่อ
+   */
+  const saveCategory = useCallback(
+    (category: Category) => {
+      const previous = categoryRecords.find((c) => c.id === category.id)
+      if (previous && previous.name !== category.name) {
+        setProducts((prev) =>
+          prev.map((p) => (p.category === previous.name ? { ...p, category: category.name } : p)),
+        )
+      }
+      setCategories((prev) =>
+        prev.some((c) => c.id === category.id)
+          ? prev.map((c) => (c.id === category.id ? category : c))
+          : [...prev, category],
+      )
+    },
+    [categoryRecords, setCategories, setProducts],
+  )
+
+  /** ลบหมวดหมู่ — ถ้ามีสินค้าอยู่ต้องระบุหมวดปลายทางเพื่อย้ายสินค้าไปก่อน */
+  const deleteCategory = useCallback(
+    (id: string, moveProductsTo: string | null) => {
+      const target = categoryRecords.find((c) => c.id === id)
+      if (!target) return
+      if (moveProductsTo) {
+        setProducts((prev) =>
+          prev.map((p) => (p.category === target.name ? { ...p, category: moveProductsTo } : p)),
+        )
+      }
+      setCategories((prev) => prev.filter((c) => c.id !== id))
+    },
+    [categoryRecords, setCategories, setProducts],
+  )
+
+  const moveCategory = useCallback(
+    (id: string, direction: -1 | 1) => setCategories((prev) => moveBySortOrder(prev, id, direction)),
+    [setCategories],
   )
 
   /**
@@ -355,9 +451,10 @@ export function useCatalog() {
   )
 
   return {
-    products, activeProducts, recommendedProducts, categories, getProduct,
+    products, activeProducts, recommendedProducts, categories, categoryList, getProduct,
     banners, liveBanners, coupons,
     saveProduct, deleteProduct, saveBanner, deleteBanner, moveBanner, validateCoupon,
+    saveCategory, deleteCategory, moveCategory,
   }
 }
 

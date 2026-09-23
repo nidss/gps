@@ -1,6 +1,6 @@
 // ── ข้อมูลตัวอย่างที่ใส่ให้อัตโนมัติเมื่อเปิดเว็บครั้งแรก ─────────────
 // ทำให้เว็บมีสินค้า แบนเนอร์ สมาชิก และออเดอร์ย้อนหลังให้ดูทันที
-import type { Banner, Coupon, Order, Product, User, AppNotification, OrderStatus } from '../types'
+import type { Banner, Category, Coupon, Order, Product, User, AppNotification, OrderStatus } from '../types'
 import { hashPassword } from './storage'
 import { todayKey } from './format'
 import { orderCode } from './id'
@@ -25,6 +25,18 @@ function isoOffset(days: number, hour = 10): string {
   return d.toISOString()
 }
 
+/**
+ * สร้างรายการหมวดหมู่จากชื่อหมวดที่สินค้าใช้อยู่ เรียงตามตัวอักษร (ลำดับเดิมก่อนมีหน้าจัดการหมวดหมู่)
+ * ใช้ทั้งตอนใส่ข้อมูลตั้งต้น และตอนผู้ใช้เดิมที่ยังไม่มีข้อมูลหมวดหมู่ในเครื่อง
+ */
+export function categoriesFromProducts(products: Product[]): Category[] {
+  return Array.from(new Set(products.map((p) => p.category)))
+    .filter((name) => name.trim() !== '')
+    .sort()
+    .map((name, i) => ({ id: `c${String(i + 1).padStart(2, '0')}`, name, sortOrder: i + 1, active: true }))
+}
+
+export const seedCategories: Category[] = categoriesFromProducts(seedProducts)
 
 export const seedBanners: Banner[] = [
   {

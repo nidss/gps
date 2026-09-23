@@ -57,6 +57,19 @@ export interface Product {
   createdAt: string
 }
 
+/**
+ * หมวดหมู่สินค้า
+ * สินค้าอ้างอิงหมวดด้วยชื่อ (Product.category) ไม่ใช่ id — เปลี่ยนชื่อหมวดแล้วต้องอัปเดตสินค้าตาม
+ */
+export interface Category {
+  id: string
+  name: string
+  /** ลำดับในเมนูและปุ่มลัด เลขน้อยแสดงก่อน */
+  sortOrder: number
+  /** ปิด = ซ่อนจากเมนูและปุ่มลัดเท่านั้น สินค้าในหมวดยังขายและค้นหาเจอตามปกติ */
+  active: boolean
+}
+
 export interface Banner {
   id: string
   title: string
