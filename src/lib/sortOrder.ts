@@ -5,7 +5,7 @@ interface Sortable {
   sortOrder: number
 }
 
-/** ใช้กับ Array.sort — เลขน้อยแสดงก่อน */
+/** ใช้กับ Array.sort - เลขน้อยแสดงก่อน */
 export function bySortOrder(a: Sortable, b: Sortable): number {
   return a.sortOrder - b.sortOrder
 }

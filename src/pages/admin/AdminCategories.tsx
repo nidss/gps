@@ -59,7 +59,7 @@ export function AdminCategories() {
     <>
       <AdminPageHeader
         title="จัดการหมวดหมู่"
-        description={`ทั้งหมด ${num(categoryList.length)} หมวด · แสดงบนหน้าร้าน ${num(categories.length)} หมวด — ลำดับที่นี่คือลำดับในเมนูและปุ่มลัดหน้าแรก`}
+        description={`ทั้งหมด ${num(categoryList.length)} หมวด · แสดงบนหน้าร้าน ${num(categories.length)} หมวด - ลำดับที่นี่คือลำดับในเมนูและปุ่มลัดหน้าแรก`}
         action={
           <Button onClick={openNew}>
             <PlusIcon className="h-4 w-4" />
@@ -144,7 +144,7 @@ export function AdminCategories() {
 
         {categoryList.length === 0 && (
           <p className="px-5 py-12 text-center text-sm text-gp-ink-soft">
-            ยังไม่มีหมวดหมู่ — กด “เพิ่มหมวดหมู่” เพื่อเริ่มต้น
+            ยังไม่มีหมวดหมู่ - กด “เพิ่มหมวดหมู่” เพื่อเริ่มต้น
           </p>
         )}
       </Card>
@@ -190,7 +190,7 @@ export function AdminCategories() {
         )}
       </Modal>
 
-      {/* ยืนยันการลบ — ถ้ามีสินค้าอยู่ต้องเลือกหมวดที่จะย้ายสินค้าไป */}
+      {/* ยืนยันการลบ - ถ้ามีสินค้าอยู่ต้องเลือกหมวดที่จะย้ายสินค้าไป */}
       <Modal
         open={deleting !== null}
         onClose={() => setDeleting(null)}
@@ -217,7 +217,7 @@ export function AdminCategories() {
             {deletingCount > 0 &&
               (categoryList.length > 1 ? (
                 <Field
-                  label={`หมวดนี้มีสินค้า ${num(deletingCount)} ชิ้น — ย้ายสินค้าไปที่หมวด`}
+                  label={`หมวดนี้มีสินค้า ${num(deletingCount)} ชิ้น - ย้ายสินค้าไปที่หมวด`}
                   required
                 >
                   <Select value={moveTo} onChange={(e) => setMoveTo(e.target.value)}>
@@ -230,7 +230,7 @@ export function AdminCategories() {
                 </Field>
               ) : (
                 <Alert tone="amber">
-                  หมวดนี้มีสินค้า {num(deletingCount)} ชิ้น และไม่มีหมวดอื่นให้ย้ายไป — เพิ่มหมวดใหม่ก่อนแล้วค่อยลบ
+                  หมวดนี้มีสินค้า {num(deletingCount)} ชิ้น และไม่มีหมวดอื่นให้ย้ายไป - เพิ่มหมวดใหม่ก่อนแล้วค่อยลบ
                 </Alert>
               ))}
           </div>

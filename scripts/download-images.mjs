@@ -29,7 +29,7 @@ const DRY_RUN = args.includes('--dry-run')
 const REFERER = flag('referer', 'https://www.rodlifestore.com/')
 
 if (!existsSync(DATA_FILE)) {
-  console.error(`ไม่พบไฟล์ ${DATA_FILE} — ต้องรันจากโฟลเดอร์หลักของโปรเจกต์`)
+  console.error(`ไม่พบไฟล์ ${DATA_FILE} - ต้องรันจากโฟลเดอร์หลักของโปรเจกต์`)
   process.exit(1)
 }
 
@@ -46,7 +46,7 @@ for (const match of source.matchAll(productRe)) {
 }
 
 if (entries.length === 0) {
-  console.log('ไม่มีรูปที่ชี้ไป URL ภายนอกแล้ว — ไม่ต้องทำอะไรเพิ่ม')
+  console.log('ไม่มีรูปที่ชี้ไป URL ภายนอกแล้ว - ไม่ต้องทำอะไรเพิ่ม')
   process.exit(0)
 }
 
@@ -113,6 +113,6 @@ if (ok > 0) {
   console.log('  npm run build')
   console.log('  git add -A && git commit -m "chore: เก็บรูปสินค้าไว้ในโปรเจกต์" && git push')
 } else {
-  console.error(`\nโหลดไม่สำเร็จสักไฟล์ (ล้มเหลว ${failed} ไฟล์) — ไม่ได้แก้ไฟล์ข้อมูล`)
+  console.error(`\nโหลดไม่สำเร็จสักไฟล์ (ล้มเหลว ${failed} ไฟล์) - ไม่ได้แก้ไฟล์ข้อมูล`)
   process.exit(1)
 }

@@ -49,7 +49,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 async function fetchHtml(url) {
   const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'th,en;q=0.8' } })
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${url}`)
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} - ${url}`)
   return res.text()
 }
 
@@ -119,7 +119,7 @@ function collectProductLinks($, baseUrl) {
     if (abs) links.add(abs.split('#')[0])
   })
 
-  // 3) จาก <a> ที่ชี้ไปหน้าสินค้า — ครอบคลุมรูปแบบ URL ที่พบบ่อยในร้านไทย
+  // 3) จาก <a> ที่ชี้ไปหน้าสินค้า - ครอบคลุมรูปแบบ URL ที่พบบ่อยในร้านไทย
   const patterns = [/\/product\//i, /\/products\//i, /\/item\//i, /\/p\//i, /[?&]product_id=/i]
   $('a[href]').each((_, el) => {
     const abs = absolute($(el).attr('href'), baseUrl)
@@ -184,7 +184,7 @@ function parseProduct($, url) {
     $('h1').first().text().trim() ||
     $('title').text().trim()
 
-  // ราคา — JSON-LD offers มาก่อน แล้วค่อย fallback ไป meta / class ทั่วไป
+  // ราคา - JSON-LD offers มาก่อน แล้วค่อย fallback ไป meta / class ทั่วไป
   const offers = Array.isArray(product?.offers) ? product.offers[0] : product?.offers
   let price = parsePrice(offers?.price ?? offers?.lowPrice)
   let salePrice = null
@@ -221,7 +221,7 @@ function parseProduct($, url) {
     $('[class*="description"], [id*="description"]').first().text().trim().slice(0, 1500) ||
     ''
 
-  // รูปภาพ — เก็บได้หลายรูป
+  // รูปภาพ - เก็บได้หลายรูป
   const images = new Set()
   const ldImages = product?.image
   for (const i of Array.isArray(ldImages) ? ldImages : [ldImages]) {
@@ -261,15 +261,15 @@ async function downloadImage(src, slug, index) {
   const safeExt = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg'].includes(ext) ? ext : '.jpg'
   const filename = `${slug}-${index + 1}${safeExt}`
   const res = await fetch(src, { headers: { 'User-Agent': UA, Referer: categoryUrl } })
-  if (!res.ok) throw new Error(`โหลดรูปไม่สำเร็จ ${res.status} — ${src}`)
+  if (!res.ok) throw new Error(`โหลดรูปไม่สำเร็จ ${res.status} - ${src}`)
   const buf = Buffer.from(await res.arrayBuffer())
-  if (buf.length < 1024) throw new Error(`รูปเล็กผิดปกติ (${buf.length} bytes) — ${src}`)
+  if (buf.length < 1024) throw new Error(`รูปเล็กผิดปกติ (${buf.length} bytes) - ${src}`)
   writeFileSync(`${IMAGE_DIR}/${filename}`, buf)
   return `images/products/${filename}`
 }
 
 /**
- * สร้าง slug สำหรับใช้เป็นชื่อไฟล์ — บังคับให้เป็น ASCII เท่านั้น
+ * สร้าง slug สำหรับใช้เป็นชื่อไฟล์ - บังคับให้เป็น ASCII เท่านั้น
  * เพราะชื่อไฟล์ภาษาไทยจะถูก percent-encode ใน URL และพังกับ CDN บางตัว
  */
 function toSlug(name, fallbackIndex) {
@@ -315,7 +315,7 @@ if (DEBUG) {
 }
 
 if (links.length === 0) {
-  console.error('\nหาลิงก์สินค้าไม่เจอ — โครงสร้างหน้าอาจไม่ตรงกับ pattern ที่รองรับ')
+  console.error('\nหาลิงก์สินค้าไม่เจอ - โครงสร้างหน้าอาจไม่ตรงกับ pattern ที่รองรับ')
   console.error('ลองรันซ้ำด้วย --debug แล้วส่งผลลัพธ์มาให้ปรับ selector ครับ')
   process.exit(1)
 }

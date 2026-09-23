@@ -65,7 +65,7 @@ export function AdminBanners() {
     <>
       <AdminPageHeader
         title="จัดการแบนเนอร์หน้าแรก"
-        description={`กำหนดช่วงวันที่แสดงและลำดับได้ — ขณะนี้มี ${liveBanners.length} แบนเนอร์ที่แสดงอยู่บนหน้าแรก`}
+        description={`กำหนดช่วงวันที่แสดงและลำดับได้ - ขณะนี้มี ${liveBanners.length} แบนเนอร์ที่แสดงอยู่บนหน้าแรก`}
         action={
           <Button onClick={openNew}>
             <PlusIcon className="h-4 w-4" />
@@ -161,7 +161,7 @@ export function AdminBanners() {
 
         {sorted.length === 0 && (
           <p className="px-5 py-12 text-center text-sm text-gp-ink-soft">
-            ยังไม่มีแบนเนอร์ — กด “เพิ่มแบนเนอร์” เพื่อเริ่มต้น
+            ยังไม่มีแบนเนอร์ - กด “เพิ่มแบนเนอร์” เพื่อเริ่มต้น
           </p>
         )}
       </Card>

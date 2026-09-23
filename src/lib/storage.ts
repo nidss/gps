@@ -24,7 +24,7 @@ export const KEYS = {
   adminProductView: `${PREFIX}admin-product-view`,
 } as const
 
-/** อ่านค่าจาก localStorage แบบปลอดภัย — คืน fallback เมื่ออ่านไม่ได้ */
+/** อ่านค่าจาก localStorage แบบปลอดภัย - คืน fallback เมื่ออ่านไม่ได้ */
 export function read<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)
@@ -35,7 +35,7 @@ export function read<T>(key: string, fallback: T): T {
   }
 }
 
-/** เขียนค่าลง localStorage — คืน false เมื่อเขียนไม่สำเร็จ (เช่น พื้นที่เต็ม) */
+/** เขียนค่าลง localStorage - คืน false เมื่อเขียนไม่สำเร็จ (เช่น พื้นที่เต็ม) */
 export function write(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))
@@ -50,7 +50,7 @@ export function clearAll(): void {
   try {
     Object.values(KEYS).forEach((k) => localStorage.removeItem(k))
   } catch {
-    /* เบราว์เซอร์บล็อก storage — ข้ามไป */
+    /* เบราว์เซอร์บล็อก storage - ข้ามไป */
   }
 }
 

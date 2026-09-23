@@ -24,7 +24,7 @@ export function AdminChat() {
     <>
       <AdminPageHeader
         title="แชทลูกค้า"
-        description="ตอบข้อความจากหน้าร้าน และตั้งคำตอบอัตโนมัติให้บอทตอบคำถามที่พบบ่อย — ระบบสาธิต ข้อความอยู่ในเบราว์เซอร์นี้เท่านั้น"
+        description="ตอบข้อความจากหน้าร้าน และตั้งคำตอบอัตโนมัติให้บอทตอบคำถามที่พบบ่อย - ระบบสาธิต ข้อความอยู่ในเบราว์เซอร์นี้เท่านั้น"
       />
 
       <div className="mb-4 inline-flex rounded-md border border-gp-line bg-white p-1" role="tablist">
@@ -83,14 +83,14 @@ function ThreadsPanel() {
   if (threads.length === 0) {
     return (
       <Card className="px-5 py-12 text-center text-sm text-gp-ink-soft">
-        ยังไม่มีข้อความจากลูกค้า — ลองเปิดหน้าร้านแล้วกดปุ่มแชทมุมขวาล่าง
+        ยังไม่มีข้อความจากลูกค้า - ลองเปิดหน้าร้านแล้วกดปุ่มแชทมุมขวาล่าง
       </Card>
     )
   }
 
   return (
     <Card className="grid h-[calc(100vh-16rem)] min-h-[30rem] overflow-hidden lg:grid-cols-[20rem_1fr]">
-      {/* รายการห้อง — มือถือแสดงเฉพาะตอนยังไม่ได้เลือกห้อง */}
+      {/* รายการห้อง - มือถือแสดงเฉพาะตอนยังไม่ได้เลือกห้อง */}
       <ul className={cx('min-h-0 divide-y divide-gp-line overflow-y-auto border-gp-line lg:block lg:border-r', selected && 'hidden')}>
         {threads.map((t) => {
           const unread = isUnreadByAdmin(t)
@@ -296,7 +296,7 @@ function FaqPanel() {
               {probeMatch ? (
                 <>บอทตอบด้วย: <span className="font-semibold">“{probeMatch.question}”</span></>
               ) : (
-                <span className="text-gp-ink-soft">ไม่ตรงข้อไหน — บอทจะตอบว่า “{BOT_FALLBACK}” แล้วรอแอดมินตอบ</span>
+                <span className="text-gp-ink-soft">ไม่ตรงข้อไหน - บอทจะตอบว่า “{BOT_FALLBACK}” แล้วรอแอดมินตอบ</span>
               )}
             </p>
           )}
@@ -376,7 +376,7 @@ function FaqPanel() {
         </div>
         {faqs.length === 0 && (
           <p className="px-5 py-12 text-center text-sm text-gp-ink-soft">
-            ยังไม่มีคำตอบอัตโนมัติ — บอทจะตอบทุกข้อความว่าแอดมินจะติดต่อกลับ
+            ยังไม่มีคำตอบอัตโนมัติ - บอทจะตอบทุกข้อความว่าแอดมินจะติดต่อกลับ
           </p>
         )}
       </Card>
@@ -401,7 +401,7 @@ function FaqPanel() {
                 placeholder="เช่น ค่าจัดส่งเท่าไหร่?"
               />
             </Field>
-            <Field label="คำค้น" hint="คั่นด้วยจุลภาค — ถ้าข้อความลูกค้ามีคำใดคำหนึ่ง บอทจะตอบด้วยข้อนี้ (ข้อที่อยู่ลำดับบนกว่าได้ก่อน)">
+            <Field label="คำค้น" hint="คั่นด้วยจุลภาค - ถ้าข้อความลูกค้ามีคำใดคำหนึ่ง บอทจะตอบด้วยข้อนี้ (ข้อที่อยู่ลำดับบนกว่าได้ก่อน)">
               <Input
                 value={editing.keywordsText}
                 onChange={(e) => setEditing({ ...editing, keywordsText: e.target.value })}

@@ -118,7 +118,7 @@ export function Dashboard() {
           <StackedBar segments={statusSegments} />
           {stats.lowStockCount > 0 && (
             <p className="mt-5 rounded-md bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-800">
-              มีสินค้า {stats.lowStockCount} รายการที่เหลือไม่ถึง 20 ชิ้น —{' '}
+              มีสินค้า {stats.lowStockCount} รายการที่เหลือไม่ถึง 20 ชิ้น -{' '}
               <Link to="/admin/products" className="underline">ตรวจสอบสต็อก</Link>
             </p>
           )}

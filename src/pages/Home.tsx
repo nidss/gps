@@ -33,7 +33,7 @@ export function Home() {
   )
 }
 
-/** ปุ่มลัดหมวดหมู่ — หัวข้อไม่บังคับ เว้นว่างได้ */
+/** ปุ่มลัดหมวดหมู่ - หัวข้อไม่บังคับ เว้นว่างได้ */
 function CategoryShortcuts({ section }: { section: HomeSection }) {
   const { categories } = useCatalog()
   if (categories.length === 0) return null
@@ -55,7 +55,7 @@ function CategoryShortcuts({ section }: { section: HomeSection }) {
   )
 }
 
-/** แถบโปรโมชันคูปอง — ไม่แสดงถ้าคูปองถูกปิดหรือหมดอายุ */
+/** แถบโปรโมชันคูปอง - ไม่แสดงถ้าคูปองถูกปิดหรือหมดอายุ */
 function CouponStrip({ section }: { section: HomeSection }) {
   const { resolveCoupon } = useHomeSections()
   const coupon = resolveCoupon(section)
@@ -84,7 +84,7 @@ function CouponStrip({ section }: { section: HomeSection }) {
   )
 }
 
-/** รายการสินค้าแบบตาราง 4 คอลัมน์ — ไม่แสดงถ้าไม่มีสินค้าให้แสดง */
+/** รายการสินค้าแบบตาราง 4 คอลัมน์ - ไม่แสดงถ้าไม่มีสินค้าให้แสดง */
 function ProductSection({ section }: { section: HomeSection }) {
   const { categoryList } = useCatalog()
   const { resolveProducts } = useHomeSections()

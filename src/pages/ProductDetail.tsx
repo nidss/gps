@@ -179,7 +179,7 @@ export function ProductDetail() {
                 role="status"
                 className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800"
               >
-                เพิ่ม “{product.name}” จำนวน {qty} ชิ้นลงตะกร้าแล้ว —{' '}
+                เพิ่ม “{product.name}” จำนวน {qty} ชิ้นลงตะกร้าแล้ว -{' '}
                 <Link to="/cart" className="underline">ไปที่ตะกร้าสินค้า</Link>
               </p>
             )}
