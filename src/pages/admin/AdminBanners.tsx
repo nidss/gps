@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { AdminPageHeader } from '../../components/AdminLayout'
 import { SingleImagePicker } from '../../components/ImagePicker'
-import { Badge, Button, Card, Checkbox, Field, Input, Modal, ReorderButtons, cx } from '../../components/ui'
+import { Badge, Button, Card, Checkbox, ConfirmDialog, Field, Input, Modal, ReorderButtons, cx } from '../../components/ui'
 import { EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Banner } from '../../types'
@@ -34,6 +34,7 @@ export function AdminBanners() {
   const { banners, liveBanners, saveBanner, deleteBanner, moveBanner } = useCatalog()
   const [editing, setEditing] = useState<Banner | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [deleting, setDeleting] = useState<Banner | null>(null)
 
   const sorted = [...banners].sort(bySortOrder)
 
@@ -145,9 +146,7 @@ export function AdminBanners() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (window.confirm(`ลบแบนเนอร์ “${banner.title}” ใช่หรือไม่?`)) deleteBanner(banner.id)
-                          }}
+                          onClick={() => setDeleting(banner)}
                           aria-label={`ลบ ${banner.title}`}
                           className="rounded-md p-2 text-gp-ink-soft transition-colors hover:bg-gp-red-tint hover:text-gp-red"
                         >
@@ -268,6 +267,34 @@ export function AdminBanners() {
           </form>
         )}
       </Modal>
+
+      {/* ยืนยันก่อนลบแบนเนอร์ */}
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (deleting) deleteBanner(deleting.id)
+          setDeleting(null)
+        }}
+        title="ลบแบนเนอร์"
+        confirmLabel="ลบแบนเนอร์"
+      >
+        {deleting && (
+          <>
+            <Img
+              src={deleting.image}
+              alt=""
+              className="aspect-[4/1] w-full rounded-md border border-gp-line object-cover"
+            />
+            <p>
+              ลบแบนเนอร์ <span className="font-bold">“{deleting.title}”</span> ใช่หรือไม่?
+            </p>
+            <p className="text-gp-ink-soft">
+              ลบแล้วกู้คืนไม่ได้ - ถ้าแค่ไม่อยากให้แสดงชั่วคราว ให้แก้ไขแล้วปิด “เปิดใช้งานแบนเนอร์นี้” แทน
+            </p>
+          </>
+        )}
+      </ConfirmDialog>
     </>
   )
 }

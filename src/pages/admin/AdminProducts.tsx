@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminPageHeader } from '../../components/AdminLayout'
 import { MultiImagePicker } from '../../components/ImagePicker'
-import { Badge, Button, Card, Checkbox, Field, Input, Modal, Select, Textarea, cx } from '../../components/ui'
+import { Badge, Button, Card, Checkbox, ConfirmDialog, Field, Input, Modal, Select, Textarea, cx } from '../../components/ui'
 import { EditIcon, GridIcon, ListIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Product } from '../../types'
@@ -28,6 +28,7 @@ export function AdminProducts() {
   const [editing, setEditing] = useState<Product | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
+  const [deleting, setDeleting] = useState<Product | null>(null)
 
   // อ่านค่าที่เลือกไว้ครั้งก่อนแบบ lazy initializer ไม่งั้นหน้าจะกระพริบ
   // เป็นมุมมองเริ่มต้นก่อนแล้วค่อยเด้งไปมุมมองที่ผู้ใช้เลือกไว้
@@ -44,8 +45,9 @@ export function AdminProducts() {
     setEditing({ ...product })
   }
 
+  /** เปิดหน้าต่างยืนยันก่อนลบ ใช้ร่วมกันทั้งมุมมองการ์ดและตาราง */
   function confirmDelete(product: Product) {
-    if (window.confirm(`ลบสินค้า “${product.name}” ใช่หรือไม่?`)) deleteProduct(product.id)
+    setDeleting(product)
   }
 
   const filtered = useMemo(() => {
@@ -364,6 +366,38 @@ export function AdminProducts() {
           </form>
         )}
       </Modal>
+
+      {/* ยืนยันก่อนลบสินค้า */}
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (deleting) deleteProduct(deleting.id)
+          setDeleting(null)
+        }}
+        title="ลบสินค้า"
+        confirmLabel="ลบสินค้า"
+      >
+        {deleting && (
+          <>
+            <div className="flex items-center gap-3 rounded-md border border-gp-line p-3">
+              <Img
+                src={deleting.images[0] ?? ''}
+                alt=""
+                className="h-14 w-14 shrink-0 rounded-md border border-gp-line object-cover"
+              />
+              <div className="min-w-0">
+                <p className="line-clamp-1 font-semibold">{deleting.name}</p>
+                <p className="text-xs text-gp-ink-soft">{deleting.sku} · {deleting.category}</p>
+              </div>
+            </div>
+            <p>ลบสินค้านี้ออกจากร้านใช่หรือไม่?</p>
+            <p className="text-gp-ink-soft">
+              ลบแล้วกู้คืนไม่ได้ - ถ้าแค่หยุดขายชั่วคราว ให้แก้ไขแล้วปิด “เปิดขายสินค้านี้” แทน ส่วนออเดอร์ที่สั่งไปแล้วยังเก็บข้อมูลสินค้าไว้ครบ
+            </p>
+          </>
+        )}
+      </ConfirmDialog>
     </>
   )
 }

@@ -204,6 +204,27 @@ export function Modal({
   )
 }
 
+/** หน้าต่างยืนยันก่อนลบ ใช้แทน window.confirm ให้หน้าตาเข้ากับระบบหลังบ้าน */
+export function ConfirmDialog({
+  open, onClose, onConfirm, title, confirmLabel, children,
+}: { open: boolean; onClose: () => void; onConfirm: () => void; title: string; confirmLabel: string; children: ReactNode }) {
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>ยกเลิก</Button>
+          <Button type="button" variant="danger" onClick={onConfirm}>{confirmLabel}</Button>
+        </>
+      }
+    >
+      <div className="grid gap-3 text-sm text-gp-ink">{children}</div>
+    </Modal>
+  )
+}
+
 /** ตัวเลือกจำนวนสินค้า พร้อมปุ่มเพิ่ม/ลด */
 export function QtyPicker({
   value, onChange, max = 99, size = 'md',

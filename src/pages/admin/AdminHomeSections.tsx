@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminPageHeader } from '../../components/AdminLayout'
 import {
-  Badge, Button, Card, Checkbox, Field, Input, Modal, ReorderButtons, Select, cx,
+  Badge, Button, Card, Checkbox, ConfirmDialog, Field, Input, Modal, ReorderButtons, Select, cx,
 } from '../../components/ui'
 import { EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { Img } from '../../components/Img'
@@ -35,6 +35,7 @@ export function AdminHomeSections() {
   const { sections, resolveProducts, resolveCoupon, saveSection, deleteSection, moveSection } = useHomeSections()
   const [editing, setEditing] = useState<HomeSection | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [deleting, setDeleting] = useState<HomeSection | null>(null)
 
   const isNew = editing !== null && !sections.some((s) => s.id === editing.id)
 
@@ -181,9 +182,7 @@ export function AdminHomeSections() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (window.confirm(`ลบ section “${label}” ใช่หรือไม่?`)) deleteSection(section.id)
-                          }}
+                          onClick={() => setDeleting(section)}
                           aria-label={`ลบ ${label}`}
                           className="rounded-md p-2 text-gp-ink-soft transition-colors hover:bg-gp-red-tint hover:text-gp-red"
                         >
@@ -298,6 +297,29 @@ export function AdminHomeSections() {
           </form>
         )}
       </Modal>
+
+      {/* ยืนยันก่อนลบ section */}
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (deleting) deleteSection(deleting.id)
+          setDeleting(null)
+        }}
+        title="ลบ section"
+        confirmLabel="ลบ section"
+      >
+        {deleting && (
+          <>
+            <p>
+              ลบ section <span className="font-bold">“{deleting.title || KIND_LABEL[deleting.kind]}”</span> ออกจากหน้าแรกใช่หรือไม่?
+            </p>
+            <p className="text-gp-ink-soft">
+              ลบแล้วกู้คืนไม่ได้ - ถ้าแค่ไม่อยากให้แสดงชั่วคราว กดปุ่ม “ซ่อน” แทนได้ สินค้าและคูปองใน section ไม่ถูกลบไปด้วย
+            </p>
+          </>
+        )}
+      </ConfirmDialog>
     </>
   )
 }
