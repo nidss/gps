@@ -1,5 +1,5 @@
 // ── ชิ้นส่วน UI พื้นฐานที่ใช้ซ้ำทั้งเว็บ ──────────────────────────────
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDownIcon, ArrowUpIcon, CloseIcon } from './Icons'
 import { useLockBodyScroll } from '../store/AppStore'
@@ -66,7 +66,7 @@ export function Field({
   )
 }
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
   return <input className={cx(fieldBase, className)} {...props} />
 }
 

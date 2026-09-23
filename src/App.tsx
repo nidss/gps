@@ -24,6 +24,7 @@ import { AdminProducts } from './pages/admin/AdminProducts'
 import { AdminMembers } from './pages/admin/AdminMembers'
 import { AdminCategories } from './pages/admin/AdminCategories'
 import { AdminHomeSections } from './pages/admin/AdminHomeSections'
+import { AdminChat } from './pages/admin/AdminChat'
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
               <Route path="products" element={<AdminProducts />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="members" element={<AdminMembers />} />
+              <Route path="chat" element={<AdminChat />} />
             </Route>
 
             {/* หน้าฝั่งลูกค้า */}

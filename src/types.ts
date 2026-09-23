@@ -181,3 +181,46 @@ export interface AppNotification {
   createdAt: string
   kind: 'promo' | 'order' | 'system'
 }
+
+// ── แชท ─────────────────────────────────────────────────────────────
+// ข้อความเก็บใน localStorage จึงเห็นกันได้เฉพาะในเบราว์เซอร์เดียวกัน (ระบบสาธิต)
+
+export interface ChatMessage {
+  id: string
+  from: 'customer' | 'bot' | 'admin'
+  text: string
+  createdAt: string
+}
+
+/** ห้องแชท 1 ห้องต่อลูกค้า 1 คน (สมาชิกหรือผู้เยี่ยมชม) */
+export interface ChatThread {
+  id: string
+  /** user.id ของสมาชิก หรือ id ของผู้เยี่ยมชม (ChatGuest.id) */
+  ownerId: string
+  /** null = ผู้เยี่ยมชมที่ไม่ได้ล็อกอิน */
+  userId: string | null
+  name: string
+  messages: ChatMessage[]
+  updatedAt: string
+  /** เวลาที่ลูกค้า/แอดมินเปิดอ่านล่าสุด ใช้นับข้อความที่ยังไม่อ่าน */
+  customerReadAt: string
+  adminReadAt: string
+}
+
+/** ผู้เยี่ยมชมที่เริ่มแชทโดยไม่ได้ล็อกอิน */
+export interface ChatGuest {
+  id: string
+  name: string
+}
+
+/** คำถาม-คำตอบของบอทตอบอัตโนมัติ */
+export interface ChatFaq {
+  id: string
+  /** คำถามที่แสดงเป็นปุ่มคำถามด่วนในหน้าต่างแชท */
+  question: string
+  /** ข้อความลูกค้ามีคำใดคำหนึ่งในนี้ บอทจะตอบด้วยคำตอบของข้อนี้ */
+  keywords: string[]
+  answer: string
+  sortOrder: number
+  active: boolean
+}

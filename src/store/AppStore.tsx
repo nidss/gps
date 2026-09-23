@@ -6,23 +6,21 @@ import {
   type ReactNode,
 } from 'react'
 import type {
-  Address, AppNotification, Banner, CartItem, Category, Coupon, HomeSection, Order, OrderStatus,
-  PaymentMethod, Product, TaxInfo, User,
+  Address, AppNotification, Banner, CartItem, Category, ChatFaq, ChatGuest, ChatMessage, ChatThread, Coupon,
+  HomeSection, Order, OrderStatus, PaymentMethod, Product, TaxInfo, User,
 } from '../types'
 import { KEYS, clearAll, hashPassword, read, write } from '../lib/storage'
 import { discountPercent, effectivePrice, todayKey } from '../lib/format'
 import { orderCode, uid } from '../lib/id'
 import { bySortOrder, moveBySortOrder } from '../lib/sortOrder'
+import { botReply } from '../lib/chatBot'
 import {
-  buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedCoupons, seedHomeSections,
-  seedNotifications, seedProducts, seedUsers,
+  buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedChatFaqs, seedChats, seedCoupons,
+  seedHomeSections, seedNotifications, seedProducts, seedUsers,
 } from '../lib/seed'
 
-/** ค่าจัดส่งมาตรฐาน และยอดซื้อขั้นต่ำที่ส่งฟรี */
-export const SHIPPING_FEE = 60
-export const FREE_SHIPPING_MIN = 1500
-/** อัตราภาษีมูลค่าเพิ่ม ใช้แยกแสดงจากยอดที่รวม VAT แล้ว */
-export const VAT_RATE = 0.07
+/** ค่าจัดส่ง ยอดส่งฟรี และ VAT — ตัวจริงอยู่ใน lib/constants.ts */
+export { FREE_SHIPPING_MIN, SHIPPING_FEE, VAT_RATE } from '../lib/constants'
 
 /**
  * บัญชีผู้ดูแลระบบสำหรับสาธิต
@@ -41,6 +39,10 @@ interface AppState {
   users: User[]
   orders: Order[]
   notifications: AppNotification[]
+  chats: ChatThread[]
+  chatFaqs: ChatFaq[]
+  /** ผู้เยี่ยมชมที่เริ่มแชทในเบราว์เซอร์นี้ */
+  chatGuest: ChatGuest | null
   cart: CartItem[]
   currentUserId: string | null
   adminLoggedIn: boolean
@@ -75,6 +77,15 @@ function loadCategories(products: Product[]): Category[] {
   return derived
 }
 
+/** ข้อมูลแชท — ผู้ใช้เดิมที่ยังไม่มีได้บทสนทนาตัวอย่างและคำตอบอัตโนมัติตั้งต้น */
+function readChat(): Pick<AppState, 'chats' | 'chatFaqs' | 'chatGuest'> {
+  return {
+    chats: read<ChatThread[]>(KEYS.chats, seedChats),
+    chatFaqs: read<ChatFaq[]>(KEYS.chatFaqs, seedChatFaqs),
+    chatGuest: read<ChatGuest | null>(KEYS.chatGuest, null),
+  }
+}
+
 /** โหลดข้อมูลจาก localStorage ครั้งแรก พร้อมใส่ข้อมูลตัวอย่างถ้ายังไม่เคยมี */
 function loadInitialState(): AppState {
   const seeded = read<boolean>(KEYS.seeded, false)
@@ -88,12 +99,15 @@ function loadInitialState(): AppState {
     write(KEYS.users, seedUsers)
     write(KEYS.orders, orders)
     write(KEYS.notifications, seedNotifications)
+    write(KEYS.chats, seedChats)
+    write(KEYS.chatFaqs, seedChatFaqs)
     write(KEYS.seeded, true)
     write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
       products: seedProducts, categories: seedCategories, banners: seedBanners, coupons: seedCoupons,
       homeSections: seedHomeSections,
       users: seedUsers, orders, notifications: seedNotifications,
+      chats: seedChats, chatFaqs: seedChatFaqs, chatGuest: read<ChatGuest | null>(KEYS.chatGuest, null),
       cart: read<CartItem[]>(KEYS.cart, []),
       currentUserId: read<string | null>(KEYS.session, null),
       adminLoggedIn: read<boolean>(KEYS.adminSession, false),
@@ -123,6 +137,7 @@ function loadInitialState(): AppState {
       users: read<User[]>(KEYS.users, seedUsers),
       orders: read<Order[]>(KEYS.orders, []),
       notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
+      ...readChat(),
       cart: [],
       currentUserId: read<string | null>(KEYS.session, null),
       adminLoggedIn: read<boolean>(KEYS.adminSession, false),
@@ -139,6 +154,7 @@ function loadInitialState(): AppState {
     users: read<User[]>(KEYS.users, seedUsers),
     orders: read<Order[]>(KEYS.orders, []),
     notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
+    ...readChat(),
     cart: read<CartItem[]>(KEYS.cart, []),
     currentUserId: read<string | null>(KEYS.session, null),
     adminLoggedIn: read<boolean>(KEYS.adminSession, false),
@@ -155,6 +171,9 @@ const SYNCED_SLICES: Array<[string, keyof AppState]> = [
   [KEYS.users, 'users'],
   [KEYS.orders, 'orders'],
   [KEYS.notifications, 'notifications'],
+  [KEYS.chats, 'chats'],
+  [KEYS.chatFaqs, 'chatFaqs'],
+  [KEYS.chatGuest, 'chatGuest'],
   [KEYS.cart, 'cart'],
   [KEYS.session, 'currentUserId'],
   [KEYS.adminSession, 'adminLoggedIn'],
@@ -788,6 +807,176 @@ export function useNotifications() {
   )
 
   return { notifications: sorted, unreadCount, push, markRead, markAllRead }
+}
+
+// ── แชท ─────────────────────────────────────────────────────────────
+
+/** เวลาที่บอทรอก่อนตอบ ให้ดูเป็นธรรมชาติและลูกค้าเห็นว่าข้อความส่งออกไปแล้ว */
+const BOT_DELAY_MS = 700
+
+export function useChat() {
+  const { state } = useApp()
+  const [chats, setChats] = useSlice('chats', KEYS.chats)
+  const [faqs, setFaqs] = useSlice('chatFaqs', KEYS.chatFaqs)
+  const [guest, setGuest] = useSlice('chatGuest', KEYS.chatGuest)
+
+  const currentUser = useMemo(
+    () => state.users.find((u) => u.id === state.currentUserId) ?? null,
+    [state.users, state.currentUserId],
+  )
+
+  /** เจ้าของห้องแชทของผู้ใช้ปัจจุบัน — สมาชิกใช้บัญชี ผู้เยี่ยมชมต้องกรอกชื่อก่อน (null = ยังไม่ได้กรอก) */
+  const owner = useMemo(() => {
+    if (currentUser) {
+      return { ownerId: currentUser.id, userId: currentUser.id, name: `${currentUser.firstName} ${currentUser.lastName}` }
+    }
+    return guest ? { ownerId: guest.id, userId: null, name: guest.name } : null
+  }, [currentUser, guest])
+
+  const myThread = useMemo(
+    () => (owner ? chats.find((t) => t.ownerId === owner.ownerId) ?? null : null),
+    [chats, owner],
+  )
+
+  /** ข้อความจากร้าน (แอดมินหรือบอท) ที่ลูกค้ายังไม่ได้เปิดอ่าน */
+  const customerUnread = useMemo(
+    () => myThread?.messages.filter((m) => m.from !== 'customer' && m.createdAt > myThread.customerReadAt).length ?? 0,
+    [myThread],
+  )
+
+  /** ห้องทั้งหมด ใหม่สุดก่อน — สำหรับหลังบ้าน */
+  const threads = useMemo(() => [...chats].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [chats])
+
+  /** ห้องที่มีข้อความลูกค้าที่แอดมินยังไม่ได้อ่าน */
+  const isUnreadByAdmin = useCallback(
+    (t: ChatThread) => t.messages.some((m) => m.from === 'customer' && m.createdAt > t.adminReadAt),
+    [],
+  )
+  const adminUnreadCount = useMemo(() => chats.filter(isUnreadByAdmin).length, [chats, isUnreadByAdmin])
+
+  const setGuestName = useCallback(
+    (name: string) => setGuest((prev) => ({ id: prev?.id ?? uid('g'), name: name.trim() })),
+    [setGuest],
+  )
+
+  /** ต่อข้อความท้ายห้องของเจ้าของที่ระบุ สร้างห้องใหม่ถ้ายังไม่มี */
+  const appendMessage = useCallback(
+    (
+      target: { ownerId: string; userId: string | null; name: string },
+      message: ChatMessage,
+      readBy: 'customer' | 'admin',
+    ) => {
+      setChats((prev) => {
+        const existing = prev.find((t) => t.ownerId === target.ownerId)
+        const readField = readBy === 'customer' ? 'customerReadAt' : 'adminReadAt'
+        if (!existing) {
+          const epoch = new Date(0).toISOString()
+          const thread: ChatThread = {
+            id: uid('ch'), ...target, messages: [message], updatedAt: message.createdAt,
+            customerReadAt: epoch, adminReadAt: epoch, [readField]: message.createdAt,
+          }
+          return [...prev, thread]
+        }
+        return prev.map((t) =>
+          t.id === existing.id
+            ? {
+                ...t,
+                // สมาชิกอาจแก้ชื่อในโปรไฟล์ ให้ห้องใช้ชื่อล่าสุดเสมอ
+                name: readBy === 'customer' ? target.name : t.name,
+                messages: [...t.messages, message],
+                updatedAt: message.createdAt,
+                [readField]: message.createdAt,
+              }
+            : t,
+        )
+      })
+    },
+    [setChats],
+  )
+
+  /**
+   * ลูกค้าส่งข้อความ แล้วบอทตอบตามหลังเล็กน้อย
+   * คืน Promise ที่ resolve เมื่อบอทตอบเสร็จ (หรือไม่ต้องตอบ) ให้หน้าต่างแชทแสดงสถานะกำลังพิมพ์
+   */
+  const sendCustomerMessage = useCallback(
+    (text: string): Promise<void> => {
+      const body = text.trim()
+      if (!owner || !body) return Promise.resolve()
+      const history = myThread?.messages ?? []
+      appendMessage(owner, { id: uid('m'), from: 'customer', text: body, createdAt: new Date().toISOString() }, 'customer')
+
+      const reply = botReply(body, faqs, history)
+      if (!reply) return Promise.resolve()
+      return new Promise((resolve) => {
+        window.setTimeout(() => {
+          // คำตอบบอทมาทันทีหลังลูกค้าส่งข้อความเอง จึงนับว่าลูกค้าอ่านแล้ว ไม่ขึ้นเป็นข้อความค้างอ่าน
+          appendMessage(owner, { id: uid('m'), from: 'bot', text: reply, createdAt: new Date().toISOString() }, 'customer')
+          resolve()
+        }, BOT_DELAY_MS)
+      })
+    },
+    [owner, myThread, faqs, appendMessage],
+  )
+
+  const markCustomerRead = useCallback(() => {
+    if (!myThread || customerUnread === 0) return
+    const now = new Date().toISOString()
+    setChats((prev) => prev.map((t) => (t.id === myThread.id ? { ...t, customerReadAt: now } : t)))
+  }, [myThread, customerUnread, setChats])
+
+  // ── ฝั่งแอดมิน ──
+  const sendAdminMessage = useCallback(
+    (threadId: string, text: string) => {
+      const body = text.trim()
+      const thread = chats.find((t) => t.id === threadId)
+      if (!thread || !body) return
+      appendMessage(thread, { id: uid('m'), from: 'admin', text: body, createdAt: new Date().toISOString() }, 'admin')
+    },
+    [chats, appendMessage],
+  )
+
+  const markAdminRead = useCallback(
+    (threadId: string) => {
+      const thread = chats.find((t) => t.id === threadId)
+      if (!thread || !isUnreadByAdmin(thread)) return
+      const now = new Date().toISOString()
+      setChats((prev) => prev.map((t) => (t.id === threadId ? { ...t, adminReadAt: now } : t)))
+    },
+    [chats, isUnreadByAdmin, setChats],
+  )
+
+  const deleteThread = useCallback(
+    (threadId: string) => setChats((prev) => prev.filter((t) => t.id !== threadId)),
+    [setChats],
+  )
+
+  // ── คำตอบอัตโนมัติ ──
+  const sortedFaqs = useMemo(() => [...faqs].sort(bySortOrder), [faqs])
+
+  const saveFaq = useCallback(
+    (faq: ChatFaq) => {
+      setFaqs((prev) =>
+        prev.some((f) => f.id === faq.id) ? prev.map((f) => (f.id === faq.id ? faq : f)) : [...prev, faq],
+      )
+    },
+    [setFaqs],
+  )
+
+  const deleteFaq = useCallback((id: string) => setFaqs((prev) => prev.filter((f) => f.id !== id)), [setFaqs])
+
+  const moveFaq = useCallback(
+    (id: string, direction: -1 | 1) => setFaqs((prev) => moveBySortOrder(prev, id, direction)),
+    [setFaqs],
+  )
+
+  return {
+    // ลูกค้า
+    owner, guest, myThread, customerUnread, setGuestName, sendCustomerMessage, markCustomerRead,
+    // แอดมิน
+    threads, adminUnreadCount, isUnreadByAdmin, sendAdminMessage, markAdminRead, deleteThread,
+    // คำตอบอัตโนมัติ
+    faqs: sortedFaqs, saveFaq, deleteFaq, moveFaq,
+  }
 }
 
 // ── ยูทิลิตี้สำหรับหน้า admin ────────────────────────────────────────
