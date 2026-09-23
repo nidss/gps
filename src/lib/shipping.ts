@@ -8,7 +8,7 @@
 // และรับ webhook จากขนส่งไม่ได้ ขนส่งจริงต้องมี backend เล็ก ๆ (เช่น serverless function)
 // เป็นตัวกลาง - adapter ฝั่งนี้จะเรียก backend นั้นแทนการเรียก API ของขนส่งตรง ๆ
 // ตอนนี้จึงใช้ขนส่งจำลองที่ขยับสถานะพัสดุเองตามเวลา เพื่อสาธิตการอัปเดตแบบ real-time
-import type { Order, OrderStatus, Shipment, ShipmentEvent, ShipmentStatus } from '../types'
+import type { CarrierId, Order, OrderStatus, Shipment, ShipmentEvent, ShipmentStatus } from '../types'
 
 export interface ShippingProvider {
   id: string
@@ -19,6 +19,35 @@ export interface ShippingProvider {
   createShipment(order: Order, now: Date): Promise<Shipment>
   /** ถามสถานะล่าสุดของพัสดุ - คืนพัสดุเดิมพร้อม nextCheckAt ใหม่ถ้ายังไม่มีอะไรเปลี่ยน */
   track(shipment: Shipment, order: Order, now: Date): Promise<Shipment>
+}
+
+// ── บริษัทขนส่ง ─────────────────────────────────────────────────────
+// ผู้ให้บริการ (ShippingProvider) คือตัวเชื่อมระบบ ส่วนบริษัทขนส่งคือเจ้าที่รับพัสดุจริง
+// แยกกันเพราะบริการรวมขนส่ง (aggregator) เจ้าเดียวส่งได้หลายบริษัท
+
+export const CARRIERS: Array<{ id: CarrierId; name: string }> = [
+  { id: 'thaipost', name: 'ไปรษณีย์ไทย' },
+  { id: 'flash', name: 'Flash Express' },
+  { id: 'kex', name: 'KEX Express' },
+  { id: 'jt', name: 'J&T Express' },
+]
+
+export const CARRIER_NAME: Record<CarrierId, string> = Object.fromEntries(
+  CARRIERS.map((c) => [c.id, c.name]),
+) as Record<CarrierId, string>
+
+/** บริษัทขนส่งที่ใช้เมื่อเปลี่ยนสถานะเป็น "จัดส่งแล้ว" จากตารางโดยไม่ได้เลือก */
+export const DEFAULT_CARRIER: CarrierId = 'thaipost'
+
+/** ตัวเลขในเลขออเดอร์ ใช้สร้างค่าที่คงที่ต่อออเดอร์ */
+function orderDigits(order: Order): string {
+  return order.code.replace(/\D/g, '')
+}
+
+/** บริษัทขนส่งของพัสดุ - พัสดุรุ่นแรกที่ยังไม่มีฟิลด์ carrier ให้เลือกตามเลขออเดอร์แบบคงที่ */
+export function carrierOf(order: Order): CarrierId | null {
+  if (!order.shipment) return null
+  return order.shipment.carrier ?? CARRIERS[Number(orderDigits(order)) % CARRIERS.length].id
 }
 
 // ── ป้ายกำกับ ───────────────────────────────────────────────────────
@@ -80,9 +109,18 @@ function simDelay(): number {
   return SIM_STEP_MIN_MS + Math.random() * (SIM_STEP_MAX_MS - SIM_STEP_MIN_MS)
 }
 
-/** เลขพัสดุคงที่ตามเลขออเดอร์ - สองแท็บสร้างพร้อมกันก็ได้เลขเดียวกัน */
-function simTrackingNo(order: Order): string {
-  return `SIM${order.code.replace(/\D/g, '')}TH`
+/**
+ * เลขพัสดุจำลองรูปแบบคล้ายของแต่ละบริษัท คงที่ตามเลขออเดอร์ - สองแท็บสร้างพร้อมกันก็ได้เลขเดียวกัน
+ * ขึ้นต้นด้วย SIM ทุกเจ้า ให้รู้ว่าไม่ใช่เลขพัสดุจริง
+ */
+function simTrackingNo(order: Order, carrier: CarrierId): string {
+  const n = orderDigits(order)
+  switch (carrier) {
+    case 'thaipost': return `SIM${n}TH`
+    case 'flash': return `SIMF${n}A`
+    case 'kex': return `SIMK${n}`
+    case 'jt': return `SIMJ${n}`
+  }
 }
 
 /** ขั้นถัดไปของพัสดุจำลอง นับจากประวัติที่มีอยู่ - null คือจบแล้ว */
@@ -126,9 +164,11 @@ export const simulatedProvider: ShippingProvider = {
 
   async createShipment(order, now) {
     const at = now.toISOString()
+    const carrier = order.shipment?.carrier ?? DEFAULT_CARRIER
     return {
       provider: SIM_ID,
-      trackingNo: simTrackingNo(order),
+      carrier,
+      trackingNo: simTrackingNo(order, carrier),
       status: 'created',
       events: [{ status: 'created', description: 'ร้านค้าสร้างเลขพัสดุและแจ้งเข้ารับ', location: 'Grandprix Online', at }],
       createdAt: at,
@@ -162,9 +202,12 @@ export function backfillShipment(order: Order, now: Date, delivered: boolean): S
   // เวลาในประวัติต้องไม่เลยปัจจุบัน (ออเดอร์เมื่อวานอาจยังไม่ถึงชั่วโมงที่วางไว้)
   const at = (hours: number) => new Date(Math.min(base + hours * hour, now.getTime())).toISOString()
 
+  // ออเดอร์เก่าไม่มีข้อมูลว่าส่งกับใคร จึงกระจายไปตามเลขออเดอร์แบบคงที่
+  const carrier = CARRIERS[Number(orderDigits(order)) % CARRIERS.length].id
   let shipment: Shipment = {
     provider: SIM_ID,
-    trackingNo: simTrackingNo(order),
+    carrier,
+    trackingNo: simTrackingNo(order, carrier),
     status: 'created',
     events: [{ status: 'created', description: 'ร้านค้าสร้างเลขพัสดุและแจ้งเข้ารับ', location: 'Grandprix Online', at: at(20) }],
     createdAt: at(20),
@@ -209,7 +252,9 @@ export const SHIPMENT_TICK_MS = 3_000
  * เปลี่ยนสถานะออเดอร์ - เปลี่ยนเป็น "จัดส่งแล้ว" ครั้งแรกจะสั่งส่งพัสดุกับผู้ให้บริการ
  * (ใส่พัสดุสถานะ booking ไว้ก่อน แล้วระบบซิงก์จะไปขอเลขพัสดุจริงให้)
  */
-export function withOrderStatus(order: Order, status: OrderStatus, now: Date = new Date()): Order {
+export function withOrderStatus(
+  order: Order, status: OrderStatus, carrier: CarrierId = DEFAULT_CARRIER, now: Date = new Date(),
+): Order {
   if (status !== 'shipped' || order.shipment) return { ...order, status }
   const at = now.toISOString()
   return {
@@ -217,6 +262,7 @@ export function withOrderStatus(order: Order, status: OrderStatus, now: Date = n
     status,
     shipment: {
       provider: ACTIVE_PROVIDER_ID,
+      carrier,
       trackingNo: '',
       status: 'booking',
       events: [],

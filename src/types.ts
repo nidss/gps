@@ -188,6 +188,9 @@ export interface Order {
 export type ShipmentStatus =
   | 'booking' | 'created' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'failed'
 
+/** บริษัทขนส่งที่รับพัสดุ */
+export type CarrierId = 'thaipost' | 'flash' | 'kex' | 'jt'
+
 export interface ShipmentEvent {
   status: ShipmentStatus
   description: string
@@ -196,8 +199,10 @@ export interface ShipmentEvent {
 }
 
 export interface Shipment {
-  /** id ของผู้ให้บริการขนส่งใน lib/shipping.ts */
+  /** id ของผู้ให้บริการใน lib/shipping.ts (ตัวเชื่อมระบบ อาจดูแลได้หลายบริษัทขนส่ง) */
   provider: string
+  /** บริษัทขนส่งที่รับพัสดุ - พัสดุที่สร้างก่อนมีฟิลด์นี้ไม่มีค่า ใช้ carrierOf() ใน lib/shipping.ts อ่านแทน */
+  carrier?: CarrierId
   /** เลขพัสดุ - ว่างระหว่างสถานะ booking */
   trackingNo: string
   status: ShipmentStatus

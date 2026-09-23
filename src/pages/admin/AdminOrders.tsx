@@ -11,10 +11,10 @@ import { useOrders } from '../../store/AppStore'
 import { baht, num, thaiDateTime, todayKey } from '../../lib/format'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_ORDER, ORDER_STATUS_TONE, PAYMENT_LABEL } from '../../lib/orderStatus'
 import {
-  SHIPMENT_FILTER_OPTIONS, SHIPMENT_STATUS_LABEL, SHIPMENT_STATUS_TONE, activeProvider, getProvider,
-  shipmentFilterKey, type ShipmentFilter,
+  CARRIERS, CARRIER_NAME, DEFAULT_CARRIER, SHIPMENT_FILTER_OPTIONS, SHIPMENT_STATUS_LABEL, SHIPMENT_STATUS_TONE,
+  activeProvider, carrierOf, getProvider, shipmentFilterKey, type ShipmentFilter,
 } from '../../lib/shipping'
-import type { Order, OrderStatus } from '../../types'
+import type { CarrierId, Order, OrderStatus } from '../../types'
 
 const PAGE_SIZE = 20
 
@@ -89,7 +89,11 @@ export function AdminOrders() {
         if (status && o.status !== status) return false
         if (ship && shipmentFilterKey(o) !== ship) return false
         if (q) {
-          const haystack = [o.code, o.customerName, o.customerEmail, o.customerPhone, o.shipment?.trackingNo ?? '']
+          const carrier = carrierOf(o)
+          const haystack = [
+            o.code, o.customerName, o.customerEmail, o.customerPhone,
+            o.shipment?.trackingNo ?? '', carrier ? CARRIER_NAME[carrier] : '',
+          ]
             .join(' ')
             .toLowerCase()
           if (!haystack.includes(q)) return false
@@ -253,13 +257,14 @@ export function AdminOrders() {
       ) : (
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[60rem] text-sm">
+            <table className="w-full min-w-[68rem] text-sm">
               <thead>
                 <tr className="border-b border-gp-line bg-gp-surface text-left text-xs text-gp-ink-soft">
                   <th className="px-5 py-2.5 font-semibold">เลขที่</th>
                   <th className="px-3 py-2.5 font-semibold">ลูกค้า</th>
                   <th className="px-3 py-2.5 text-right font-semibold">ยอดสุทธิ</th>
                   <th className="px-3 py-2.5 font-semibold">สถานะคำสั่งซื้อ</th>
+                  <th className="px-3 py-2.5 font-semibold">ขนส่ง</th>
                   <th className="px-3 py-2.5 font-semibold">สถานะการจัดส่ง</th>
                   <th className="px-5 py-2.5 font-semibold">เปลี่ยนสถานะ</th>
                 </tr>
@@ -288,6 +293,9 @@ export function AdminOrders() {
                     <td className="px-3 py-3">
                       <Badge tone={ORDER_STATUS_TONE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>
                       <p className="mt-1 text-xs text-gp-ink-soft">{PAYMENT_LABEL[order.paymentMethod]}</p>
+                    </td>
+                    <td className="px-3 py-3">
+                      <CarrierCell order={order} />
                     </td>
                     <td className="px-3 py-3">
                       <ShipmentCell order={order} />
@@ -346,10 +354,17 @@ export function AdminOrders() {
       <OrderDetail
         order={detail}
         onClose={() => setDetailId(null)}
-        onStatus={(s) => detail && updateStatus(detail.id, s)}
+        onStatus={(s, carrier) => detail && updateStatus(detail.id, s, carrier)}
       />
     </>
   )
+}
+
+/** ช่องบริษัทขนส่ง - ยังไม่ได้ส่งพัสดุแสดงขีด */
+function CarrierCell({ order }: { order: Order }) {
+  const carrier = carrierOf(order)
+  if (!carrier) return <p className="text-xs text-gp-ink-soft">-</p>
+  return <p className="whitespace-nowrap font-medium text-gp-ink">{CARRIER_NAME[carrier]}</p>
 }
 
 /** ช่องสถานะจัดส่งในตาราง - กระพริบเมื่อพัสดุเพิ่งขยับ */
@@ -377,10 +392,12 @@ function ShipmentCell({ order }: { order: Order }) {
 /** รายละเอียดคำสั่งซื้อพร้อมเส้นทางพัสดุ */
 function OrderDetail({
   order, onClose, onStatus,
-}: { order: Order | null; onClose: () => void; onStatus: (status: OrderStatus) => void }) {
+}: { order: Order | null; onClose: () => void; onStatus: (status: OrderStatus, carrier?: CarrierId) => void }) {
+  const [carrierChoice, setCarrierChoice] = useState<CarrierId>(DEFAULT_CARRIER)
   if (!order) return null
   const shipment = order.shipment
   const providerName = shipment ? getProvider(shipment.provider)?.name ?? shipment.provider : null
+  const carrier = carrierOf(order)
   const a = order.shipping
 
   return (
@@ -396,7 +413,7 @@ function OrderDetail({
             <Select
               value={order.status}
               aria-label="เปลี่ยนสถานะคำสั่งซื้อ"
-              onChange={(e) => onStatus(e.target.value as OrderStatus)}
+              onChange={(e) => onStatus(e.target.value as OrderStatus, carrierChoice)}
               className="py-1.5 text-xs"
             >
               {ORDER_STATUS_ORDER.map((s) => (
@@ -466,20 +483,34 @@ function OrderDetail({
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed border-gp-line p-4 text-sm text-gp-ink-soft">
               <span>ยังไม่ได้ส่งพัสดุ</span>
               {order.status === 'paid' && (
-                <Button size="sm" onClick={() => onStatus('shipped')}>
-                  <TruckIcon className="h-4 w-4" />
-                  สั่งส่งพัสดุ
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="w-44">
+                    <Select
+                      value={carrierChoice}
+                      aria-label="เลือกบริษัทขนส่ง"
+                      onChange={(e) => setCarrierChoice(e.target.value as CarrierId)}
+                      className="py-1.5 text-xs"
+                    >
+                      {CARRIERS.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </Select>
+                  </div>
+                  <Button size="sm" onClick={() => onStatus('shipped', carrierChoice)}>
+                    <TruckIcon className="h-4 w-4" />
+                    สั่งส่งพัสดุ
+                  </Button>
+                </div>
               )}
             </div>
           ) : (
             <div className="rounded-md border border-gp-line p-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 <Badge tone={SHIPMENT_STATUS_TONE[shipment.status]}>{SHIPMENT_STATUS_LABEL[shipment.status]}</Badge>
-                <span className="text-gp-ink-soft">{providerName}</span>
-                <span className="tnum font-semibold text-gp-ink">
-                  {shipment.trackingNo || 'กำลังขอเลขพัสดุ…'}
-                </span>
+                {carrier && <span className="font-semibold text-gp-ink">{CARRIER_NAME[carrier]}</span>}
+                {/* ระหว่างรอเลขพัสดุ ป้ายสถานะบอกอยู่แล้ว ไม่ต้องแสดงซ้ำ */}
+                {shipment.trackingNo && <span className="tnum font-semibold text-gp-ink">{shipment.trackingNo}</span>}
+                <span className="text-xs text-gp-ink-soft">ผ่าน {providerName}</span>
               </div>
               {shipment.events.length > 0 && (
                 <ol className="mt-4 grid gap-0">

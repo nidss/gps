@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import type {
-  Address, AppNotification, Banner, CartItem, Category, ChatFaq, ChatGuest, ChatMessage, ChatThread, Coupon,
+  Address, AppNotification, Banner, CarrierId, CartItem, Category, ChatFaq, ChatGuest, ChatMessage, ChatThread, Coupon,
   HomeSection, Order, OrderStatus, PaymentMethod, Product, TaxInfo, User,
 } from '../types'
 import { KEYS, clearAll, hashPassword, read, write } from '../lib/storage'
@@ -762,10 +762,11 @@ export function useOrders() {
     [items, subtotal, orders.length, state.currentUserId, setOrders, setProducts, clear, pushNotification],
   )
 
+  /** carrier ใช้เฉพาะตอนเปลี่ยนเป็น "จัดส่งแล้ว" ครั้งแรก (ไม่ระบุ = บริษัทขนส่งเริ่มต้น) */
   const updateStatus = useCallback(
-    (orderId: string, status: OrderStatus) => {
+    (orderId: string, status: OrderStatus, carrier?: CarrierId) => {
       // เปลี่ยนเป็น "จัดส่งแล้ว" ครั้งแรกจะสั่งส่งพัสดุกับผู้ให้บริการขนส่งด้วย
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? withOrderStatus(o, status) : o)))
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? withOrderStatus(o, status, carrier) : o)))
     },
     [setOrders],
   )
