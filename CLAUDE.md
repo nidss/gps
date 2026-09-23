@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | คำสั่ง | ใช้ทำอะไร |
 |---|---|
-| `npm run dev` | dev server |
+| `npm run dev` | dev server ที่ `http://localhost:5173/gpshop/` (`base` มีผลตอน dev ด้วย) |
 | `npm run build` | `tsc -b` แล้ว `vite build` - ใช้เป็นด่านตรวจหลักก่อน commit |
 | `npm run typecheck` | ตรวจ type อย่างเดียว เร็วกว่า build |
 | `npm run preview` | เสิร์ฟ `dist/` ที่ `http://localhost:4173/gpshop/` (ต้อง build ก่อน) |
@@ -32,7 +32,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. `npm i -D playwright`
 2. เขียนไฟล์ชื่อลงท้าย `*.local.mjs` (gitignore ไว้แล้ว) - ใช้ Chromium ที่มากับ environment:
-   `chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' })`
+   `chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })`
+   (symlink ไปยังรุ่นที่ติดตั้งอยู่ ไม่ต้องแก้ path เมื่อ environment อัปเดตรุ่น)
    **ห้ามรัน `playwright install`** (environment ตั้ง `PLAYWRIGHT_BROWSERS_PATH` ไว้แล้ว)
 3. ก่อน commit: `npm uninstall playwright` และลบไฟล์ `*.local.mjs` ทิ้ง
 
@@ -113,6 +114,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **ซิงก์ข้ามแท็บ:** `AppProvider` ฟัง event `storage` ตาม `SYNCED_SLICES` - เพิ่ม slice ใหม่ต้องเพิ่มในรายการนี้ด้วย
 (แชทพึ่งกลไกนี้ให้แท็บหลังบ้านเห็นข้อความลูกค้าทันที)
+event นี้ยิงเฉพาะแท็บอื่น ไม่ยิงในแท็บที่เขียนเอง - ทดสอบด้วย Playwright ต้องเปิดสองหน้าใน context เดียวกัน
+
+**เพิ่ม state slice ใหม่ต้องแก้ครบทุกจุดใน `AppStore.tsx` + `storage.ts`:**
+`interface AppState` → `KEYS` → `loadInitialState` **ทั้งสามทาง** (เข้าเว็บครั้งแรก / `CATALOG_VERSION` เปลี่ยน / โหลดปกติ
+แต่ละทาง return state คนละก้อน ลืมทางใดทางหนึ่งแล้ว slice จะเป็น `undefined` เฉพาะผู้ใช้กลุ่มนั้น) → `SYNCED_SLICES`
+→ hook ที่อ่าน/เขียนผ่าน `useSlice(key, KEYS.xxx)` ซึ่ง `setState` และ `write` ลง localStorage พร้อมกัน
+(คีย์ที่เป็นแค่ค่าตั้ง UI เช่น `adminProductView` อ่าน/เขียนตรงด้วย `read`/`write` ไม่ต้องเข้า `AppState`)
 
 **แชทเป็นการสาธิตฝั่ง client เช่นเดียวกับระบบล็อกอิน** - ข้อความอยู่ใน localStorage คุยข้ามเครื่องไม่ได้
 ถ้าจะให้ใช้งานจริงต้องมี backend (เช่น WebSocket หรือบริการแชทภายนอก)
