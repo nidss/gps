@@ -85,6 +85,36 @@ export interface Banner {
   active: boolean
 }
 
+/** ชนิดของ section บนหน้าแรก (ใต้ hero banner) */
+export type HomeSectionKind = 'categories' | 'coupon' | 'products'
+
+/** แหล่งสินค้าของ section ชนิด products */
+export type ProductSource = 'recommended' | 'sale' | 'new' | 'category' | 'manual'
+
+/**
+ * section บนหน้าแรก — มีฟิลด์ครบทุกตัวเสมอไม่ว่าชนิดไหน
+ * ฟอร์มหลังบ้านจึงสลับชนิดไปมาได้โดยไม่ต้องแปลงโครงข้อมูล
+ */
+export interface HomeSection {
+  id: string
+  kind: HomeSectionKind
+  /** หัวข้อที่แสดง (ชนิด coupon ใช้เป็นป้ายเล็กเหนือข้อความ) */
+  title: string
+  /** ลำดับการแสดงผล เลขน้อยแสดงก่อน */
+  sortOrder: number
+  active: boolean
+  /** ใช้เมื่อ kind = products */
+  source: ProductSource
+  /** ใช้เมื่อ source = category */
+  categoryId: string | null
+  /** ใช้เมื่อ source = manual — แสดงตามลำดับในอาร์เรย์ */
+  productIds: string[]
+  /** จำนวนสินค้าสูงสุดที่แสดง */
+  limit: number
+  /** ใช้เมื่อ kind = coupon */
+  couponCode: string
+}
+
 export type CouponType = 'percent' | 'amount' | 'freeship'
 
 export interface Coupon {

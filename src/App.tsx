@@ -23,6 +23,7 @@ import { AdminBanners } from './pages/admin/AdminBanners'
 import { AdminProducts } from './pages/admin/AdminProducts'
 import { AdminMembers } from './pages/admin/AdminMembers'
 import { AdminCategories } from './pages/admin/AdminCategories'
+import { AdminHomeSections } from './pages/admin/AdminHomeSections'
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="banners" element={<AdminBanners />} />
+              <Route path="home" element={<AdminHomeSections />} />
               <Route path="products" element={<AdminProducts />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="members" element={<AdminMembers />} />

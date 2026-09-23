@@ -1,6 +1,6 @@
 // ── ข้อมูลตัวอย่างที่ใส่ให้อัตโนมัติเมื่อเปิดเว็บครั้งแรก ─────────────
 // ทำให้เว็บมีสินค้า แบนเนอร์ สมาชิก และออเดอร์ย้อนหลังให้ดูทันที
-import type { Banner, Category, Coupon, Order, Product, User, AppNotification, OrderStatus } from '../types'
+import type { Banner, Category, Coupon, HomeSection, Order, Product, User, AppNotification, OrderStatus } from '../types'
 import { hashPassword } from './storage'
 import { todayKey } from './format'
 import { orderCode } from './id'
@@ -63,6 +63,23 @@ export const seedBanners: Banner[] = [
     image: ban('banner-4.svg'), ctaLabel: 'ดูสินค้า', ctaLink: '/products',
     startDate: dayOffset(-60), endDate: dayOffset(-20), sortOrder: 4, active: true,
   },
+]
+
+/** ค่าตั้งต้นของ section ใหม่ — ใช้ร่วมกับฟอร์มเพิ่ม section ในหลังบ้าน */
+export function blankHomeSection(id: string, sortOrder: number): HomeSection {
+  return {
+    id, kind: 'products', title: '', sortOrder, active: true,
+    source: 'recommended', categoryId: null, productIds: [], limit: 4, couponCode: '',
+  }
+}
+
+/** หน้าแรกตั้งต้น: เรียงเหมือนก่อนมีหน้าจัดการ section */
+export const seedHomeSections: HomeSection[] = [
+  { ...blankHomeSection('hs01', 1), kind: 'categories', title: '' },
+  { ...blankHomeSection('hs02', 2), title: 'สินค้าแนะนำ', source: 'recommended', limit: 8 },
+  { ...blankHomeSection('hs03', 3), kind: 'coupon', title: 'คูปองส่วนลด', couponCode: 'GP10' },
+  { ...blankHomeSection('hs04', 4), title: 'กำลังลดราคา', source: 'sale', limit: 4 },
+  { ...blankHomeSection('hs05', 5), title: 'สินค้ามาใหม่', source: 'new', limit: 4 },
 ]
 
 export const seedCoupons: Coupon[] = [

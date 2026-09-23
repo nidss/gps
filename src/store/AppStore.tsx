@@ -6,16 +6,16 @@ import {
   type ReactNode,
 } from 'react'
 import type {
-  Address, AppNotification, Banner, CartItem, Category, Coupon, Order, OrderStatus,
+  Address, AppNotification, Banner, CartItem, Category, Coupon, HomeSection, Order, OrderStatus,
   PaymentMethod, Product, TaxInfo, User,
 } from '../types'
 import { KEYS, clearAll, hashPassword, read, write } from '../lib/storage'
-import { effectivePrice, todayKey } from '../lib/format'
+import { discountPercent, effectivePrice, todayKey } from '../lib/format'
 import { orderCode, uid } from '../lib/id'
 import { bySortOrder, moveBySortOrder } from '../lib/sortOrder'
 import {
-  buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedCoupons, seedNotifications,
-  seedProducts, seedUsers,
+  buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedCoupons, seedHomeSections,
+  seedNotifications, seedProducts, seedUsers,
 } from '../lib/seed'
 
 /** ค่าจัดส่งมาตรฐาน และยอดซื้อขั้นต่ำที่ส่งฟรี */
@@ -37,6 +37,7 @@ interface AppState {
   categories: Category[]
   banners: Banner[]
   coupons: Coupon[]
+  homeSections: HomeSection[]
   users: User[]
   orders: Order[]
   notifications: AppNotification[]
@@ -83,6 +84,7 @@ function loadInitialState(): AppState {
     write(KEYS.categories, seedCategories)
     write(KEYS.banners, seedBanners)
     write(KEYS.coupons, seedCoupons)
+    write(KEYS.homeSections, seedHomeSections)
     write(KEYS.users, seedUsers)
     write(KEYS.orders, orders)
     write(KEYS.notifications, seedNotifications)
@@ -90,6 +92,7 @@ function loadInitialState(): AppState {
     write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
       products: seedProducts, categories: seedCategories, banners: seedBanners, coupons: seedCoupons,
+      homeSections: seedHomeSections,
       users: seedUsers, orders, notifications: seedNotifications,
       cart: read<CartItem[]>(KEYS.cart, []),
       currentUserId: read<string | null>(KEYS.session, null),
@@ -97,7 +100,7 @@ function loadInitialState(): AppState {
     }
   }
   // เคยเข้าเว็บมาแล้ว แต่แคตตาล็อกในเครื่องเป็นรุ่นเก่า ให้อัปเดตเฉพาะ
-  // สินค้า หมวดหมู่ แบนเนอร์ และคูปอง ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
+  // สินค้า หมวดหมู่ แบนเนอร์ คูปอง และ section หน้าแรก (อ้างอิงหมวดและรหัสสินค้า) ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
   // ซึ่งเป็นข้อมูลที่ผู้ใช้สร้างเองยังเก็บไว้เหมือนเดิม
   const storedVersion = read<number>(KEYS.catalogVersion, 1)
   if (storedVersion !== CATALOG_VERSION) {
@@ -105,6 +108,7 @@ function loadInitialState(): AppState {
     write(KEYS.categories, seedCategories)
     write(KEYS.banners, seedBanners)
     write(KEYS.coupons, seedCoupons)
+    write(KEYS.homeSections, seedHomeSections)
     // ตะกร้าต้องล้างทิ้ง เพราะเก็บไว้แค่รหัสสินค้า ไม่ได้เก็บราคา
     // ถ้าแคตตาล็อกใหม่ใช้รหัสซ้ำกับของเดิม ผู้ใช้จะเห็นสินค้าคนละตัว
     // ในราคาคนละราคาโดยที่ไม่เคยกดเพิ่มเอง
@@ -115,6 +119,7 @@ function loadInitialState(): AppState {
       categories: seedCategories,
       banners: seedBanners,
       coupons: seedCoupons,
+      homeSections: seedHomeSections,
       users: read<User[]>(KEYS.users, seedUsers),
       orders: read<Order[]>(KEYS.orders, []),
       notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
@@ -130,6 +135,7 @@ function loadInitialState(): AppState {
     categories: loadCategories(products),
     banners: read<Banner[]>(KEYS.banners, seedBanners),
     coupons: read<Coupon[]>(KEYS.coupons, seedCoupons),
+    homeSections: read<HomeSection[]>(KEYS.homeSections, seedHomeSections),
     users: read<User[]>(KEYS.users, seedUsers),
     orders: read<Order[]>(KEYS.orders, []),
     notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
@@ -145,6 +151,7 @@ const SYNCED_SLICES: Array<[string, keyof AppState]> = [
   [KEYS.categories, 'categories'],
   [KEYS.banners, 'banners'],
   [KEYS.coupons, 'coupons'],
+  [KEYS.homeSections, 'homeSections'],
   [KEYS.users, 'users'],
   [KEYS.orders, 'orders'],
   [KEYS.notifications, 'notifications'],
@@ -456,6 +463,84 @@ export function useCatalog() {
     saveProduct, deleteProduct, saveBanner, deleteBanner, moveBanner, validateCoupon,
     saveCategory, deleteCategory, moveCategory,
   }
+}
+
+// ── section หน้าแรก ─────────────────────────────────────────────────
+
+export function useHomeSections() {
+  const [sections, setSections] = useSlice('homeSections', KEYS.homeSections)
+  const { activeProducts, recommendedProducts, categoryList, coupons } = useCatalog()
+
+  /** ทุก section เรียงตามลำดับ — สำหรับหลังบ้าน */
+  const sorted = useMemo(() => [...sections].sort(bySortOrder), [sections])
+
+  /** section ที่เปิดใช้ เรียงตามลำดับ — สำหรับหน้าแรก */
+  const liveSections = useMemo(() => sorted.filter((s) => s.active), [sorted])
+
+  /** สินค้าที่ section ชนิด products จะแสดง (ตัดสินค้าที่ปิดขายหรือถูกลบออกแล้ว) */
+  const resolveProducts = useCallback(
+    (section: HomeSection): Product[] => {
+      let list: Product[]
+      switch (section.source) {
+        case 'recommended':
+          list = recommendedProducts
+          break
+        case 'sale':
+          // เรียงตามส่วนลดมากไปน้อย
+          list = activeProducts
+            .filter((p) => discountPercent(p.price, p.salePrice) > 0)
+            .sort((a, b) => discountPercent(b.price, b.salePrice) - discountPercent(a.price, a.salePrice))
+          break
+        case 'new':
+          list = [...activeProducts].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          break
+        case 'category': {
+          const name = categoryList.find((c) => c.id === section.categoryId)?.name
+          list = name ? activeProducts.filter((p) => p.category === name) : []
+          break
+        }
+        case 'manual':
+          list = section.productIds
+            .map((id) => activeProducts.find((p) => p.id === id))
+            .filter((p): p is Product => p !== undefined)
+          break
+      }
+      return list.slice(0, Math.max(1, section.limit))
+    },
+    [activeProducts, recommendedProducts, categoryList],
+  )
+
+  /** คูปองของ section ชนิด coupon — null ถ้าไม่พบ ปิดใช้ หรือหมดอายุแล้ว (section จะไม่แสดง) */
+  const resolveCoupon = useCallback(
+    (section: HomeSection): Coupon | null => {
+      const coupon = coupons.find((c) => c.code === section.couponCode)
+      return coupon && coupon.active && coupon.expiresAt >= todayKey() ? coupon : null
+    },
+    [coupons],
+  )
+
+  const saveSection = useCallback(
+    (section: HomeSection) => {
+      setSections((prev) =>
+        prev.some((s) => s.id === section.id)
+          ? prev.map((s) => (s.id === section.id ? section : s))
+          : [...prev, section],
+      )
+    },
+    [setSections],
+  )
+
+  const deleteSection = useCallback(
+    (id: string) => setSections((prev) => prev.filter((s) => s.id !== id)),
+    [setSections],
+  )
+
+  const moveSection = useCallback(
+    (id: string, direction: -1 | 1) => setSections((prev) => moveBySortOrder(prev, id, direction)),
+    [setSections],
+  )
+
+  return { sections: sorted, liveSections, resolveProducts, resolveCoupon, saveSection, deleteSection, moveSection }
 }
 
 // ── ตะกร้าสินค้า ────────────────────────────────────────────────────

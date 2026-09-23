@@ -9,6 +9,7 @@ export const KEYS = {
   banners: `${PREFIX}banners`,
   categories: `${PREFIX}categories`,
   coupons: `${PREFIX}coupons`,
+  homeSections: `${PREFIX}home-sections`,
   users: `${PREFIX}users`,
   orders: `${PREFIX}orders`,
   notifications: `${PREFIX}notifications`,
