@@ -36,7 +36,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   if (total === 0) {
     return (
       <div className="bg-gp-ink">
-        <div className="mx-auto flex aspect-[5/2] max-w-[1600px] items-center justify-center px-4 text-center text-sm text-white/70">
+        <div className="mx-auto flex aspect-[4/1] max-w-[1600px] items-center justify-center px-4 text-center text-sm text-white/70">
           ยังไม่มีแบนเนอร์ที่อยู่ในช่วงวันที่แสดงผล
         </div>
       </div>
@@ -45,16 +45,35 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
   return (
     <section
-      className="bg-gp-ink"
+      className="relative overflow-hidden bg-gp-ink"
       aria-roledescription="carousel"
       aria-label="แบนเนอร์โปรโมชัน"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       {/*
-        กรอบรูปใช้สัดส่วนคงที่ 5:2 ให้ตรงกับขนาดที่หลังบ้านแนะนำ (1600 × 640) รูปจึงแสดงครบทุกขนาดจอ
-        (เดิมล็อกความสูงตายตัวแต่กว้างเต็มจอ สัดส่วนกรอบเลยเปลี่ยนตามจอ รูปโดนตัดบน-ล่างหรือซ้าย-ขวา)
-        และจำกัดกว้างสุด 1600px ไม่ให้รูปถูกขยายจนแตก และไม่สูงจนดันเนื้อหาหน้าแรกลงไปไกล
+        พื้นหลังด้านข้างบนจอที่กว้างกว่า 1600px: ใช้รูปแบนเนอร์ที่กำลังแสดงอยู่แบบเบลอแทนพื้นสีเรียบ
+        ซ้อนไว้ทุกรูปแล้วสลับความทึบตามสไลด์ จะได้เปลี่ยนแบบค่อย ๆ จางไปพร้อมกับสไลด์
+      */}
+      <div className="absolute inset-0" aria-hidden="true">
+        {banners.map((banner, i) => (
+          <Img
+            key={banner.id}
+            src={banner.image}
+            alt=""
+            className={cx(
+              'absolute inset-0 h-full w-full scale-110 object-cover blur-2xl transition-opacity duration-700',
+              i === index ? 'opacity-60' : 'opacity-0',
+            )}
+          />
+        ))}
+        {/* ทับด้วยสีเข้มอีกชั้น ให้ขอบรูปจริงยังเด่นกว่าพื้นหลัง และข้อความใต้รูปบนจอเล็กอ่านง่าย */}
+        <div className="absolute inset-0 bg-gp-ink-dark/40" />
+      </div>
+
+      {/*
+        กรอบรูปใช้สัดส่วนคงที่ 4:1 ให้ตรงกับขนาดที่หลังบ้านแนะนำ (1600 × 400) รูปจึงแสดงครบทุกขนาดจอ
+        และจำกัดกว้างสุด 1600px ไม่ให้รูปถูกขยายจนแตก
       */}
       <div className="relative mx-auto max-w-[1600px] overflow-hidden">
         <div
@@ -69,7 +88,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
               role="group"
               aria-label={`${i + 1} จาก ${total}`}
             >
-              <div className="relative aspect-[5/2]">
+              <div className="relative aspect-[4/1]">
                 {banner.hideText ? (
                   // รูปที่มีข้อความในตัวแล้ว: แสดงรูปล้วน และให้ทั้งรูปเป็นลิงก์แทนปุ่ม
                   <Link to={banner.ctaLink} aria-label={banner.title} tabIndex={i === index ? 0 : -1} className="block h-full">
@@ -78,16 +97,17 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
                 ) : (
                   <>
                     <SlideImage banner={banner} eager={i === 0} />
-                    {/* จอ sm ขึ้นไป: ข้อความทับรูป */}
-                    <div className="absolute inset-0 hidden bg-gradient-to-r from-gp-ink-dark/90 via-gp-ink-dark/50 to-transparent sm:block" />
-                    <div className="absolute inset-0 hidden items-center sm:flex">
-                      <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
+                    {/* จอ lg ขึ้นไป: ข้อความทับรูป */}
+                    <div className="absolute inset-0 hidden bg-gradient-to-r from-gp-ink-dark/90 via-gp-ink-dark/50 to-transparent lg:block" />
+                    <div className="absolute inset-0 hidden items-center lg:flex">
+                      {/* เว้นขอบซ้าย-ขวาให้พ้นปุ่มลูกศร ไม่ให้ปุ่มทับตัวหนังสือ */}
+                      <div className="mx-auto w-full max-w-7xl px-16">
                         <div className="max-w-xl">
-                          <h2 className="text-2xl font-bold leading-tight text-white drop-shadow sm:text-4xl lg:text-5xl">
+                          <h2 className="text-3xl font-bold leading-tight text-white drop-shadow xl:text-4xl">
                             {banner.title}
                           </h2>
-                          <p className="mt-3 text-sm text-white/80 sm:text-base">{banner.subtitle}</p>
-                          <CtaLink banner={banner} focusable={i === index} className="mt-5 sm:mt-7" />
+                          <p className="mt-2 text-base text-white/80">{banner.subtitle}</p>
+                          <CtaLink banner={banner} focusable={i === index} className="mt-4" />
                         </div>
                       </div>
                     </div>
@@ -95,11 +115,11 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
                 )}
               </div>
 
-              {/* มือถือ: รูปเตี้ยเกินกว่าจะวางข้อความทับได้ จึงย้ายข้อความมาไว้ใต้รูป */}
+              {/* จอเล็กกว่า lg: รูปเตี้ยเกินกว่าจะวางข้อความทับได้ จึงย้ายข้อความมาไว้ใต้รูป */}
               {!banner.hideText && (
-                <div className="px-4 py-4 sm:hidden">
-                  <h2 className="text-lg font-bold leading-snug text-white">{banner.title}</h2>
-                  <CtaLink banner={banner} focusable={i === index} className="mt-3" />
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 lg:hidden">
+                  <h2 className="text-lg font-bold leading-snug text-white sm:text-xl">{banner.title}</h2>
+                  <CtaLink banner={banner} focusable={i === index} className="sm:ml-auto" />
                 </div>
               )}
             </div>
@@ -108,12 +128,12 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
         {/* ปุ่มเลื่อนและจุดบอกตำแหน่ง วางในชั้นที่สัดส่วนเท่ารูป ให้อยู่กลางรูปเสมอแม้มีข้อความใต้รูปบนมือถือ */}
         {total > 1 && (
-          <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[5/2] [&_button]:pointer-events-auto">
+          <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[4/1] [&_button]:pointer-events-auto">
           <button
             type="button"
             onClick={() => go(index - 1)}
             aria-label="แบนเนอร์ก่อนหน้า"
-            className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/30 sm:left-5 sm:h-12 sm:w-12"
+            className="absolute left-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/30 sm:left-4 sm:h-10 sm:w-10"
           >
             <ChevronLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
@@ -121,12 +141,12 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
             type="button"
             onClick={() => go(index + 1)}
             aria-label="แบนเนอร์ถัดไป"
-            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/30 sm:right-5 sm:h-12 sm:w-12"
+            className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/30 sm:right-4 sm:h-10 sm:w-10"
           >
             <ChevronRightIcon className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
 
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-6">
+          <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-4">
             {banners.map((banner, i) => (
               <button
                 key={banner.id}
@@ -154,7 +174,7 @@ function SlideImage({ banner, eager }: { banner: Banner; eager: boolean }) {
       src={banner.image}
       alt={banner.title}
       width={1600}
-      height={640}
+      height={400}
       loading={eager ? 'eager' : 'lazy'}
       className="h-full w-full object-cover"
     />

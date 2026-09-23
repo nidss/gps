@@ -184,7 +184,7 @@ export function AdminBanners() {
       >
         {editing && (
           <form id="banner-form" onSubmit={handleSave} noValidate className="grid gap-4">
-            <Field label="รูปภาพแบนเนอร์" required error={errors.image} hint="สัดส่วน 5:2 เช่น 1600 × 640 พิกเซล - แสดงเต็มรูปทุกขนาดจอ (สัดส่วนอื่นจะถูกตัดขอบให้พอดีกรอบ)">
+            <Field label="รูปภาพแบนเนอร์" required error={errors.image} hint="สัดส่วน 4:1 เช่น 1600 × 400 พิกเซล - แสดงเต็มรูปทุกขนาดจอ (สัดส่วนอื่นจะถูกตัดขอบให้พอดีกรอบ)">
               <SingleImagePicker
                 value={editing.image}
                 onChange={(image) => setEditing({ ...editing, image })}
