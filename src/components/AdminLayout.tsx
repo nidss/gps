@@ -1,16 +1,19 @@
 // ── โครงหน้าระบบหลังบ้าน ────────────────────────────────────────────
 import { useEffect } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth, useResetDemoData } from '../store/AppStore'
+import { useAuth, useChat, useResetDemoData } from '../store/AppStore'
 import { asset } from '../lib/asset'
-import { BoxIcon, DashboardIcon, ImageIcon, LogoutIcon, UsersIcon } from './Icons'
+import { BoxIcon, ChatIcon, DashboardIcon, ImageIcon, LayoutIcon, LogoutIcon, TagIcon, UsersIcon } from './Icons'
 import { Button, cx } from './ui'
 
 const menu = [
   { to: '/admin', label: 'ภาพรวมยอดขาย', icon: DashboardIcon, end: true },
   { to: '/admin/banners', label: 'จัดการแบนเนอร์', icon: ImageIcon, end: false },
+  { to: '/admin/home', label: 'จัดการหน้าแรก', icon: LayoutIcon, end: false },
   { to: '/admin/products', label: 'จัดการสินค้า', icon: BoxIcon, end: false },
+  { to: '/admin/categories', label: 'จัดการหมวดหมู่', icon: TagIcon, end: false },
   { to: '/admin/members', label: 'ข้อมูลสมาชิก', icon: UsersIcon, end: false },
+  { to: '/admin/chat', label: 'แชทลูกค้า', icon: ChatIcon, end: false },
 ]
 
 export function AdminLayout() {
@@ -18,6 +21,7 @@ export function AdminLayout() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const resetDemo = useResetDemoData()
+  const { adminUnreadCount } = useChat()
 
   // ยังไม่ได้ล็อกอินผู้ดูแลระบบ ให้เด้งไปหน้าเข้าสู่ระบบหลังบ้าน
   useEffect(() => {
@@ -58,6 +62,14 @@ export function AdminLayout() {
               >
                 <Icon className="h-4.5 w-4.5" />
                 {label}
+                {to === '/admin/chat' && adminUnreadCount > 0 && (
+                  <span
+                    className="tnum ml-auto rounded-full bg-white px-1.5 text-xs font-bold text-gp-red"
+                    aria-label={`ยังไม่ได้อ่าน ${adminUnreadCount} บทสนทนา`}
+                  >
+                    {adminUnreadCount}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>

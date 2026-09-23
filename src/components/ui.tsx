@@ -1,7 +1,7 @@
 // ── ชิ้นส่วน UI พื้นฐานที่ใช้ซ้ำทั้งเว็บ ──────────────────────────────
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
-import { CloseIcon } from './Icons'
+import { ArrowDownIcon, ArrowUpIcon, CloseIcon } from './Icons'
 import { useLockBodyScroll } from '../store/AppStore'
 
 export function cx(...parts: Array<string | false | null | undefined>): string {
@@ -66,7 +66,7 @@ export function Field({
   )
 }
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
   return <input className={cx(fieldBase, className)} {...props} />
 }
 
@@ -110,6 +110,24 @@ const toneClass: Record<Tone, string> = {
   amber: 'bg-amber-50 text-amber-700',
   slate: 'bg-slate-100 text-slate-600',
   blue: 'bg-sky-50 text-sky-700',
+}
+
+/** ปุ่มเลื่อนลำดับขึ้น/ลง ใช้ในตารางหลังบ้านที่จัดลำดับการแสดงได้ */
+export function ReorderButtons({
+  label, onMove, isFirst, isLast,
+}: { label: string; onMove: (direction: -1 | 1) => void; isFirst: boolean; isLast: boolean }) {
+  const btn =
+    'rounded p-0.5 text-gp-ink-soft transition-colors hover:bg-gp-surface hover:text-gp-ink disabled:opacity-30'
+  return (
+    <div className="flex flex-col">
+      <button type="button" onClick={() => onMove(-1)} disabled={isFirst} aria-label={`เลื่อน ${label} ขึ้น`} className={btn}>
+        <ArrowUpIcon className="h-3.5 w-3.5" />
+      </button>
+      <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label={`เลื่อน ${label} ลง`} className={btn}>
+        <ArrowDownIcon className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  )
 }
 
 export function Badge({ tone = 'ink', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {

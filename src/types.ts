@@ -57,6 +57,19 @@ export interface Product {
   createdAt: string
 }
 
+/**
+ * หมวดหมู่สินค้า
+ * สินค้าอ้างอิงหมวดด้วยชื่อ (Product.category) ไม่ใช่ id — เปลี่ยนชื่อหมวดแล้วต้องอัปเดตสินค้าตาม
+ */
+export interface Category {
+  id: string
+  name: string
+  /** ลำดับในเมนูและปุ่มลัด เลขน้อยแสดงก่อน */
+  sortOrder: number
+  /** ปิด = ซ่อนจากเมนูและปุ่มลัดเท่านั้น สินค้าในหมวดยังขายและค้นหาเจอตามปกติ */
+  active: boolean
+}
+
 export interface Banner {
   id: string
   title: string
@@ -70,6 +83,36 @@ export interface Banner {
   /** ลำดับการแสดงผล เลขน้อยแสดงก่อน */
   sortOrder: number
   active: boolean
+}
+
+/** ชนิดของ section บนหน้าแรก (ใต้ hero banner) */
+export type HomeSectionKind = 'categories' | 'coupon' | 'products'
+
+/** แหล่งสินค้าของ section ชนิด products */
+export type ProductSource = 'recommended' | 'sale' | 'new' | 'category' | 'manual'
+
+/**
+ * section บนหน้าแรก — มีฟิลด์ครบทุกตัวเสมอไม่ว่าชนิดไหน
+ * ฟอร์มหลังบ้านจึงสลับชนิดไปมาได้โดยไม่ต้องแปลงโครงข้อมูล
+ */
+export interface HomeSection {
+  id: string
+  kind: HomeSectionKind
+  /** หัวข้อที่แสดง (ชนิด coupon ใช้เป็นป้ายเล็กเหนือข้อความ) */
+  title: string
+  /** ลำดับการแสดงผล เลขน้อยแสดงก่อน */
+  sortOrder: number
+  active: boolean
+  /** ใช้เมื่อ kind = products */
+  source: ProductSource
+  /** ใช้เมื่อ source = category */
+  categoryId: string | null
+  /** ใช้เมื่อ source = manual — แสดงตามลำดับในอาร์เรย์ */
+  productIds: string[]
+  /** จำนวนสินค้าสูงสุดที่แสดง */
+  limit: number
+  /** ใช้เมื่อ kind = coupon */
+  couponCode: string
 }
 
 export type CouponType = 'percent' | 'amount' | 'freeship'
@@ -137,4 +180,47 @@ export interface AppNotification {
   read: boolean
   createdAt: string
   kind: 'promo' | 'order' | 'system'
+}
+
+// ── แชท ─────────────────────────────────────────────────────────────
+// ข้อความเก็บใน localStorage จึงเห็นกันได้เฉพาะในเบราว์เซอร์เดียวกัน (ระบบสาธิต)
+
+export interface ChatMessage {
+  id: string
+  from: 'customer' | 'bot' | 'admin'
+  text: string
+  createdAt: string
+}
+
+/** ห้องแชท 1 ห้องต่อลูกค้า 1 คน (สมาชิกหรือผู้เยี่ยมชม) */
+export interface ChatThread {
+  id: string
+  /** user.id ของสมาชิก หรือ id ของผู้เยี่ยมชม (ChatGuest.id) */
+  ownerId: string
+  /** null = ผู้เยี่ยมชมที่ไม่ได้ล็อกอิน */
+  userId: string | null
+  name: string
+  messages: ChatMessage[]
+  updatedAt: string
+  /** เวลาที่ลูกค้า/แอดมินเปิดอ่านล่าสุด ใช้นับข้อความที่ยังไม่อ่าน */
+  customerReadAt: string
+  adminReadAt: string
+}
+
+/** ผู้เยี่ยมชมที่เริ่มแชทโดยไม่ได้ล็อกอิน */
+export interface ChatGuest {
+  id: string
+  name: string
+}
+
+/** คำถาม-คำตอบของบอทตอบอัตโนมัติ */
+export interface ChatFaq {
+  id: string
+  /** คำถามที่แสดงเป็นปุ่มคำถามด่วนในหน้าต่างแชท */
+  question: string
+  /** ข้อความลูกค้ามีคำใดคำหนึ่งในนี้ บอทจะตอบด้วยคำตอบของข้อนี้ */
+  keywords: string[]
+  answer: string
+  sortOrder: number
+  active: boolean
 }

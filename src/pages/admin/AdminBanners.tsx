@@ -2,12 +2,13 @@
 import { useState } from 'react'
 import { AdminPageHeader } from '../../components/AdminLayout'
 import { SingleImagePicker } from '../../components/ImagePicker'
-import { Badge, Button, Card, Checkbox, Field, Input, Modal, cx } from '../../components/ui'
-import { ArrowDownIcon, ArrowUpIcon, EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
+import { Badge, Button, Card, Checkbox, Field, Input, Modal, ReorderButtons, cx } from '../../components/ui'
+import { EditIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Banner } from '../../types'
 import { thaiDate, todayKey } from '../../lib/format'
 import { uid } from '../../lib/id'
+import { bySortOrder, nextSortOrder } from '../../lib/sortOrder'
 import { Img } from '../../components/Img'
 
 /** สถานะการแสดงผลของแบนเนอร์ ณ วันนี้ */
@@ -34,11 +35,11 @@ export function AdminBanners() {
   const [editing, setEditing] = useState<Banner | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const sorted = [...banners].sort((a, b) => a.sortOrder - b.sortOrder)
+  const sorted = [...banners].sort(bySortOrder)
 
   function openNew() {
     setErrors({})
-    setEditing(emptyBanner(sorted.length + 1))
+    setEditing(emptyBanner(nextSortOrder(banners)))
   }
 
   function handleSave(e: React.FormEvent) {
@@ -93,26 +94,12 @@ export function AdminBanners() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="tnum w-6 text-center font-bold text-gp-ink">{banner.sortOrder}</span>
-                        <div className="flex flex-col">
-                          <button
-                            type="button"
-                            onClick={() => moveBanner(banner.id, -1)}
-                            disabled={index === 0}
-                            aria-label={`เลื่อน ${banner.title} ขึ้น`}
-                            className="rounded p-0.5 text-gp-ink-soft transition-colors hover:bg-gp-surface hover:text-gp-ink disabled:opacity-30"
-                          >
-                            <ArrowUpIcon className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveBanner(banner.id, 1)}
-                            disabled={index === sorted.length - 1}
-                            aria-label={`เลื่อน ${banner.title} ลง`}
-                            className="rounded p-0.5 text-gp-ink-soft transition-colors hover:bg-gp-surface hover:text-gp-ink disabled:opacity-30"
-                          >
-                            <ArrowDownIcon className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        <ReorderButtons
+                          label={banner.title}
+                          onMove={(direction) => moveBanner(banner.id, direction)}
+                          isFirst={index === 0}
+                          isLast={index === sorted.length - 1}
+                        />
                       </div>
                     </td>
 

@@ -1,9 +1,11 @@
 // ── ข้อมูลตัวอย่างที่ใส่ให้อัตโนมัติเมื่อเปิดเว็บครั้งแรก ─────────────
 // ทำให้เว็บมีสินค้า แบนเนอร์ สมาชิก และออเดอร์ย้อนหลังให้ดูทันที
-import type { Banner, Coupon, Order, Product, User, AppNotification, OrderStatus } from '../types'
+import type { Banner, Category, ChatFaq, ChatThread, Coupon, HomeSection, Order, Product, User, AppNotification, OrderStatus } from '../types'
 import { hashPassword } from './storage'
 import { todayKey } from './format'
 import { orderCode } from './id'
+import { FREE_SHIPPING_MIN, SHIPPING_FEE } from './constants'
+import { BOT_FALLBACK } from './chatBot'
 import { seedProducts } from './products.data'
 
 export { seedProducts }
@@ -25,6 +27,18 @@ function isoOffset(days: number, hour = 10): string {
   return d.toISOString()
 }
 
+/**
+ * สร้างรายการหมวดหมู่จากชื่อหมวดที่สินค้าใช้อยู่ เรียงตามตัวอักษร (ลำดับเดิมก่อนมีหน้าจัดการหมวดหมู่)
+ * ใช้ทั้งตอนใส่ข้อมูลตั้งต้น และตอนผู้ใช้เดิมที่ยังไม่มีข้อมูลหมวดหมู่ในเครื่อง
+ */
+export function categoriesFromProducts(products: Product[]): Category[] {
+  return Array.from(new Set(products.map((p) => p.category)))
+    .filter((name) => name.trim() !== '')
+    .sort()
+    .map((name, i) => ({ id: `c${String(i + 1).padStart(2, '0')}`, name, sortOrder: i + 1, active: true }))
+}
+
+export const seedCategories: Category[] = categoriesFromProducts(seedProducts)
 
 export const seedBanners: Banner[] = [
   {
@@ -51,6 +65,23 @@ export const seedBanners: Banner[] = [
     image: ban('banner-4.svg'), ctaLabel: 'ดูสินค้า', ctaLink: '/products',
     startDate: dayOffset(-60), endDate: dayOffset(-20), sortOrder: 4, active: true,
   },
+]
+
+/** ค่าตั้งต้นของ section ใหม่ — ใช้ร่วมกับฟอร์มเพิ่ม section ในหลังบ้าน */
+export function blankHomeSection(id: string, sortOrder: number): HomeSection {
+  return {
+    id, kind: 'products', title: '', sortOrder, active: true,
+    source: 'recommended', categoryId: null, productIds: [], limit: 4, couponCode: '',
+  }
+}
+
+/** หน้าแรกตั้งต้น: เรียงเหมือนก่อนมีหน้าจัดการ section */
+export const seedHomeSections: HomeSection[] = [
+  { ...blankHomeSection('hs01', 1), kind: 'categories', title: '' },
+  { ...blankHomeSection('hs02', 2), title: 'สินค้าแนะนำ', source: 'recommended', limit: 8 },
+  { ...blankHomeSection('hs03', 3), kind: 'coupon', title: 'คูปองส่วนลด', couponCode: 'GP10' },
+  { ...blankHomeSection('hs04', 4), title: 'กำลังลดราคา', source: 'sale', limit: 4 },
+  { ...blankHomeSection('hs05', 5), title: 'สินค้ามาใหม่', source: 'new', limit: 4 },
 ]
 
 export const seedCoupons: Coupon[] = [
@@ -120,6 +151,85 @@ export const seedNotifications: AppNotification[] = [
     id: 'n03', kind: 'system', title: 'ยินดีต้อนรับสู่ Grandprix Online',
     message: 'ร้านค้าสินค้าพรีเมี่ยมลิขสิทธิ์แท้ประจำการแข่งขัน Grandprix', link: null,
     read: true, createdAt: isoOffset(-5, 11),
+  },
+]
+
+/** คำตอบอัตโนมัติตั้งต้นของบอทแชท — แอดมินแก้ไขได้ที่ /admin/chat */
+export const seedChatFaqs: ChatFaq[] = [
+  {
+    id: 'f01', sortOrder: 1, active: true,
+    question: 'ค่าจัดส่งเท่าไหร่?',
+    keywords: ['ค่าส่ง', 'ค่าจัดส่ง', 'ส่งฟรี', 'shipping'],
+    answer:
+      `ค่าจัดส่งแบบมาตรฐาน ${SHIPPING_FEE} บาทค่ะ และส่งฟรีเมื่อซื้อครบ ${FREE_SHIPPING_MIN.toLocaleString('th-TH')} บาท ` +
+      'หรือใช้คูปอง FREESHIP เพื่อส่งฟรีไม่มีขั้นต่ำ',
+  },
+  {
+    id: 'f02', sortOrder: 2, active: true,
+    question: 'สั่งแล้วกี่วันได้ของ?',
+    keywords: ['กี่วัน', 'เมื่อไหร่', 'จัดส่ง', 'ระยะเวลา', 'ขนส่ง', 'ส่งของ'],
+    answer: 'จัดส่งทั่วประเทศภายใน 2–5 วันทำการหลังยืนยันการชำระเงินค่ะ เมื่อส่งแล้วสถานะออเดอร์จะเปลี่ยนเป็น “จัดส่งแล้ว”',
+  },
+  {
+    id: 'f03', sortOrder: 3, active: true,
+    question: 'ชำระเงินได้ทางไหนบ้าง?',
+    keywords: ['ชำระ', 'จ่าย', 'โอน', 'บัตร', 'ปลายทาง', 'cod'],
+    answer: 'รองรับ 3 ช่องทางค่ะ: โอนเงินผ่านธนาคาร, บัตรเครดิต/เดบิต และเก็บเงินปลายทาง เลือกได้ที่หน้าชำระเงิน',
+  },
+  {
+    id: 'f04', sortOrder: 4, active: true,
+    question: 'มีคูปองส่วนลดไหม?',
+    keywords: ['คูปอง', 'โค้ด', 'ส่วนลด', 'โปร', 'code'],
+    answer: 'ตอนนี้ใส่โค้ด GP10 ลด 10% ทั้งร้าน หรือ GP100 ลด 100 บาทเมื่อซื้อครบ 500 บาทค่ะ ใส่โค้ดได้ที่หน้าชำระเงิน',
+  },
+  {
+    id: 'f05', sortOrder: 5, active: true,
+    question: 'เช็คสถานะคำสั่งซื้อยังไง?',
+    keywords: ['สถานะ', 'ออเดอร์', 'คำสั่งซื้อ', 'order', 'ติดตาม', 'พัสดุ'],
+    answer:
+      'เข้าสู่ระบบแล้วไปที่เมนู “บัญชีของฉัน” จะเห็นสถานะทุกออเดอร์ค่ะ ' +
+      'หรือพิมพ์เลขที่ออเดอร์ (เช่น GP26090001) ไว้ในแชทนี้ แอดมินจะตรวจสอบให้',
+  },
+  {
+    id: 'f06', sortOrder: 6, active: true,
+    question: 'เปลี่ยนไซส์หรือคืนสินค้าได้ไหม?',
+    keywords: ['เปลี่ยน', 'คืน', 'ไซส์', 'size', 'ชำรุด'],
+    answer: 'เปลี่ยนไซส์หรือคืนสินค้าได้ภายใน 7 วันหลังได้รับสินค้าค่ะ สินค้าต้องยังไม่ผ่านการใช้งานและป้ายครบ แจ้งเลขที่ออเดอร์ไว้ในแชทนี้ได้เลย',
+  },
+  {
+    id: 'f07', sortOrder: 7, active: true,
+    question: 'ขอใบกำกับภาษีได้ไหม?',
+    keywords: ['ใบกำกับ', 'ภาษี', 'vat', 'tax'],
+    answer: 'ได้ค่ะ ติ๊ก “ขอใบกำกับภาษีเต็มรูป” ที่หน้าชำระเงิน รองรับทั้งบุคคลธรรมดาและนิติบุคคล',
+  },
+]
+
+/** บทสนทนาตัวอย่าง ให้หน้าแชทหลังบ้านมีข้อมูลให้ดูทันที */
+export const seedChats: ChatThread[] = [
+  {
+    id: 'ch01', ownerId: 'u01', userId: 'u01', name: 'สมชาย ใจเร็ว',
+    messages: [
+      { id: 'm01', from: 'customer', text: 'สั่งเสื้อไปแล้ว อยากเปลี่ยนไซส์ได้ไหมครับ', createdAt: isoOffset(-2, 14) },
+      {
+        id: 'm02', from: 'bot',
+        text: 'เปลี่ยนไซส์หรือคืนสินค้าได้ภายใน 7 วันหลังได้รับสินค้าค่ะ สินค้าต้องยังไม่ผ่านการใช้งานและป้ายครบ แจ้งเลขที่ออเดอร์ไว้ในแชทนี้ได้เลย',
+        createdAt: isoOffset(-2, 14),
+      },
+      { id: 'm03', from: 'admin', text: 'สวัสดีค่ะ ได้เลยค่ะ รบกวนแจ้งเลขที่ออเดอร์และไซส์ที่ต้องการ แอดมินจะดำเนินการให้นะคะ', createdAt: isoOffset(-2, 15) },
+    ],
+    updatedAt: isoOffset(-2, 15), customerReadAt: isoOffset(-2, 15), adminReadAt: isoOffset(-2, 15),
+  },
+  {
+    id: 'ch02', ownerId: 'g_demo', userId: null, name: 'คุณนก (ผู้เยี่ยมชม)',
+    messages: [
+      { id: 'm04', from: 'customer', text: 'ถ้าซื้อจำนวนมากสำหรับบริษัท มีราคาส่งไหมคะ', createdAt: isoOffset(0, 9) },
+      {
+        id: 'm05', from: 'bot',
+        text: BOT_FALLBACK,
+        createdAt: isoOffset(0, 9),
+      },
+    ],
+    updatedAt: isoOffset(0, 9), customerReadAt: isoOffset(0, 9), adminReadAt: isoOffset(-1, 9),
   },
 ]
 

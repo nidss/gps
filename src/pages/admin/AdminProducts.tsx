@@ -1,8 +1,9 @@
 // ── จัดการสินค้า: รูปหลายรูป รายละเอียด จำนวน ราคาเต็ม ราคาลด ──────────
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AdminPageHeader } from '../../components/AdminLayout'
 import { MultiImagePicker } from '../../components/ImagePicker'
-import { Badge, Button, Card, Checkbox, Field, Input, Modal, Textarea, cx } from '../../components/ui'
+import { Badge, Button, Card, Checkbox, Field, Input, Modal, Select, Textarea, cx } from '../../components/ui'
 import { EditIcon, GridIcon, ListIcon, PlusIcon, TrashIcon } from '../../components/Icons'
 import { useCatalog } from '../../store/AppStore'
 import type { Product } from '../../types'
@@ -23,7 +24,7 @@ function emptyProduct(): Product {
 }
 
 export function AdminProducts() {
-  const { products, categories, saveProduct, deleteProduct } = useCatalog()
+  const { products, categoryList, saveProduct, deleteProduct } = useCatalog()
   const [editing, setEditing] = useState<Product | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
@@ -61,7 +62,7 @@ export function AdminProducts() {
     const next: Record<string, string> = {}
     if (!editing.name.trim()) next.name = 'กรุณากรอกชื่อสินค้า'
     if (!editing.sku.trim()) next.sku = 'กรุณากรอกรหัสสินค้า'
-    if (!editing.category.trim()) next.category = 'กรุณาระบุหมวดหมู่'
+    if (!editing.category.trim()) next.category = 'กรุณาเลือกหมวดหมู่'
     if (editing.images.length === 0) next.images = 'กรุณาเพิ่มรูปสินค้าอย่างน้อย 1 รูป'
     if (!(editing.price > 0)) next.price = 'ราคาเต็มต้องมากกว่า 0'
     if (editing.salePrice !== null && editing.salePrice >= editing.price) {
@@ -271,20 +272,24 @@ export function AdminProducts() {
               </Field>
 
               <Field label="หมวดหมู่" required error={errors.category}>
-                <Input
+                <Select
                   value={editing.category}
                   onChange={(e) => setEditing({ ...editing, category: e.target.value })}
-                  list="admin-category-list"
-                  placeholder="เช่น เสื้อผ้า"
-                />
+                >
+                  <option value="">— เลือกหมวดหมู่ —</option>
+                  {categoryList.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                  {/* สินค้าข้อมูลเก่าที่หมวดไม่อยู่ในรายการ ยังคงค่าเดิมไว้ให้เห็น */}
+                  {editing.category && !categoryList.some((c) => c.name === editing.category) && (
+                    <option value={editing.category}>{editing.category} (ไม่อยู่ในรายการหมวดหมู่)</option>
+                  )}
+                </Select>
+                <Link to="/admin/categories" className="mt-1 inline-block text-xs font-semibold text-gp-red hover:underline">
+                  จัดการหมวดหมู่ →
+                </Link>
               </Field>
             </div>
-
-            <datalist id="admin-category-list">
-              {categories.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
 
             <Field label="รายละเอียดสินค้า" hint="ขึ้นบรรทัดใหม่เพื่อแยกย่อหน้า">
               <Textarea

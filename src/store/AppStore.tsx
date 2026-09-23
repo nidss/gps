@@ -6,21 +6,21 @@ import {
   type ReactNode,
 } from 'react'
 import type {
-  Address, AppNotification, Banner, CartItem, Coupon, Order, OrderStatus,
-  PaymentMethod, Product, TaxInfo, User,
+  Address, AppNotification, Banner, CartItem, Category, ChatFaq, ChatGuest, ChatMessage, ChatThread, Coupon,
+  HomeSection, Order, OrderStatus, PaymentMethod, Product, TaxInfo, User,
 } from '../types'
 import { KEYS, clearAll, hashPassword, read, write } from '../lib/storage'
-import { effectivePrice, todayKey } from '../lib/format'
+import { discountPercent, effectivePrice, todayKey } from '../lib/format'
 import { orderCode, uid } from '../lib/id'
+import { bySortOrder, moveBySortOrder } from '../lib/sortOrder'
+import { botReply } from '../lib/chatBot'
 import {
-  buildSeedOrders, seedBanners, seedCoupons, seedNotifications, seedProducts, seedUsers,
+  buildSeedOrders, categoriesFromProducts, seedBanners, seedCategories, seedChatFaqs, seedChats, seedCoupons,
+  seedHomeSections, seedNotifications, seedProducts, seedUsers,
 } from '../lib/seed'
 
-/** ค่าจัดส่งมาตรฐาน และยอดซื้อขั้นต่ำที่ส่งฟรี */
-export const SHIPPING_FEE = 60
-export const FREE_SHIPPING_MIN = 1500
-/** อัตราภาษีมูลค่าเพิ่ม ใช้แยกแสดงจากยอดที่รวม VAT แล้ว */
-export const VAT_RATE = 0.07
+/** ค่าจัดส่ง ยอดส่งฟรี และ VAT — ตัวจริงอยู่ใน lib/constants.ts */
+export { FREE_SHIPPING_MIN, SHIPPING_FEE, VAT_RATE } from '../lib/constants'
 
 /**
  * บัญชีผู้ดูแลระบบสำหรับสาธิต
@@ -32,11 +32,17 @@ export const ADMIN_PASSWORD = 'admin1234'
 
 interface AppState {
   products: Product[]
+  categories: Category[]
   banners: Banner[]
   coupons: Coupon[]
+  homeSections: HomeSection[]
   users: User[]
   orders: Order[]
   notifications: AppNotification[]
+  chats: ChatThread[]
+  chatFaqs: ChatFaq[]
+  /** ผู้เยี่ยมชมที่เริ่มแชทในเบราว์เซอร์นี้ */
+  chatGuest: ChatGuest | null
   cart: CartItem[]
   currentUserId: string | null
   adminLoggedIn: boolean
@@ -58,35 +64,65 @@ const AppContext = createContext<{
  */
 const CATALOG_VERSION = 2
 
+/**
+ * หมวดหมู่ของผู้ใช้ที่เข้าเว็บมาก่อนจะมีหน้าจัดการหมวดหมู่ยังไม่มีข้อมูลนี้ในเครื่อง
+ * จึงสร้างจากสินค้าที่เก็บอยู่ (รวมสินค้าที่แอดมินเพิ่มเอง) แล้วบันทึกไว้เลย
+ * เพื่อให้ id หมวดคงที่ ไม่เปลี่ยนไปตามสินค้าในการโหลดครั้งต่อ ๆ ไป
+ */
+function loadCategories(products: Product[]): Category[] {
+  const stored = read<Category[] | null>(KEYS.categories, null)
+  if (stored) return stored
+  const derived = categoriesFromProducts(products)
+  write(KEYS.categories, derived)
+  return derived
+}
+
+/** ข้อมูลแชท — ผู้ใช้เดิมที่ยังไม่มีได้บทสนทนาตัวอย่างและคำตอบอัตโนมัติตั้งต้น */
+function readChat(): Pick<AppState, 'chats' | 'chatFaqs' | 'chatGuest'> {
+  return {
+    chats: read<ChatThread[]>(KEYS.chats, seedChats),
+    chatFaqs: read<ChatFaq[]>(KEYS.chatFaqs, seedChatFaqs),
+    chatGuest: read<ChatGuest | null>(KEYS.chatGuest, null),
+  }
+}
+
 /** โหลดข้อมูลจาก localStorage ครั้งแรก พร้อมใส่ข้อมูลตัวอย่างถ้ายังไม่เคยมี */
 function loadInitialState(): AppState {
   const seeded = read<boolean>(KEYS.seeded, false)
   if (!seeded) {
     const orders = buildSeedOrders(seedProducts, seedUsers)
     write(KEYS.products, seedProducts)
+    write(KEYS.categories, seedCategories)
     write(KEYS.banners, seedBanners)
     write(KEYS.coupons, seedCoupons)
+    write(KEYS.homeSections, seedHomeSections)
     write(KEYS.users, seedUsers)
     write(KEYS.orders, orders)
     write(KEYS.notifications, seedNotifications)
+    write(KEYS.chats, seedChats)
+    write(KEYS.chatFaqs, seedChatFaqs)
     write(KEYS.seeded, true)
     write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
-      products: seedProducts, banners: seedBanners, coupons: seedCoupons,
+      products: seedProducts, categories: seedCategories, banners: seedBanners, coupons: seedCoupons,
+      homeSections: seedHomeSections,
       users: seedUsers, orders, notifications: seedNotifications,
+      chats: seedChats, chatFaqs: seedChatFaqs, chatGuest: read<ChatGuest | null>(KEYS.chatGuest, null),
       cart: read<CartItem[]>(KEYS.cart, []),
       currentUserId: read<string | null>(KEYS.session, null),
       adminLoggedIn: read<boolean>(KEYS.adminSession, false),
     }
   }
   // เคยเข้าเว็บมาแล้ว แต่แคตตาล็อกในเครื่องเป็นรุ่นเก่า ให้อัปเดตเฉพาะ
-  // สินค้า แบนเนอร์ และคูปอง ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
+  // สินค้า หมวดหมู่ แบนเนอร์ คูปอง และ section หน้าแรก (อ้างอิงหมวดและรหัสสินค้า) ส่วนบัญชีสมาชิก ออเดอร์ และการแจ้งเตือน
   // ซึ่งเป็นข้อมูลที่ผู้ใช้สร้างเองยังเก็บไว้เหมือนเดิม
   const storedVersion = read<number>(KEYS.catalogVersion, 1)
   if (storedVersion !== CATALOG_VERSION) {
     write(KEYS.products, seedProducts)
+    write(KEYS.categories, seedCategories)
     write(KEYS.banners, seedBanners)
     write(KEYS.coupons, seedCoupons)
+    write(KEYS.homeSections, seedHomeSections)
     // ตะกร้าต้องล้างทิ้ง เพราะเก็บไว้แค่รหัสสินค้า ไม่ได้เก็บราคา
     // ถ้าแคตตาล็อกใหม่ใช้รหัสซ้ำกับของเดิม ผู้ใช้จะเห็นสินค้าคนละตัว
     // ในราคาคนละราคาโดยที่ไม่เคยกดเพิ่มเอง
@@ -94,32 +130,77 @@ function loadInitialState(): AppState {
     write(KEYS.catalogVersion, CATALOG_VERSION)
     return {
       products: seedProducts,
+      categories: seedCategories,
       banners: seedBanners,
       coupons: seedCoupons,
+      homeSections: seedHomeSections,
       users: read<User[]>(KEYS.users, seedUsers),
       orders: read<Order[]>(KEYS.orders, []),
       notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
+      ...readChat(),
       cart: [],
       currentUserId: read<string | null>(KEYS.session, null),
       adminLoggedIn: read<boolean>(KEYS.adminSession, false),
     }
   }
 
+  const products = read<Product[]>(KEYS.products, seedProducts)
   return {
-    products: read<Product[]>(KEYS.products, seedProducts),
+    products,
+    categories: loadCategories(products),
     banners: read<Banner[]>(KEYS.banners, seedBanners),
     coupons: read<Coupon[]>(KEYS.coupons, seedCoupons),
+    homeSections: read<HomeSection[]>(KEYS.homeSections, seedHomeSections),
     users: read<User[]>(KEYS.users, seedUsers),
     orders: read<Order[]>(KEYS.orders, []),
     notifications: read<AppNotification[]>(KEYS.notifications, seedNotifications),
+    ...readChat(),
     cart: read<CartItem[]>(KEYS.cart, []),
     currentUserId: read<string | null>(KEYS.session, null),
     adminLoggedIn: read<boolean>(KEYS.adminSession, false),
   }
 }
 
+/** คีย์ใน localStorage ที่ตรงกับ state แต่ละส่วน ใช้ซิงก์ข้อมูลระหว่างแท็บ */
+const SYNCED_SLICES: Array<[string, keyof AppState]> = [
+  [KEYS.products, 'products'],
+  [KEYS.categories, 'categories'],
+  [KEYS.banners, 'banners'],
+  [KEYS.coupons, 'coupons'],
+  [KEYS.homeSections, 'homeSections'],
+  [KEYS.users, 'users'],
+  [KEYS.orders, 'orders'],
+  [KEYS.notifications, 'notifications'],
+  [KEYS.chats, 'chats'],
+  [KEYS.chatFaqs, 'chatFaqs'],
+  [KEYS.chatGuest, 'chatGuest'],
+  [KEYS.cart, 'cart'],
+  [KEYS.session, 'currentUserId'],
+  [KEYS.adminSession, 'adminLoggedIn'],
+]
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(loadInitialState)
+
+  // เปิดหลายแท็บพร้อมกัน (เช่น หน้าร้านกับหลังบ้าน) ให้เห็นข้อมูลที่อีกแท็บแก้ทันที
+  // และกันแท็บที่ถือข้อมูลเก่าอยู่เขียนทับของใหม่ในครั้งถัดไปที่บันทึก
+  // event นี้ยิงเฉพาะแท็บอื่น ไม่ยิงในแท็บที่เป็นคนเขียนเอง
+  useEffect(() => {
+    function onStorage(e: StorageEvent) {
+      const slice = SYNCED_SLICES.find(([key]) => key === e.key)
+      // newValue เป็น null เมื่ออีกแท็บกดรีเซ็ตข้อมูล — แท็บนั้นรีโหลดเอง ปล่อยแท็บนี้ไว้ตามเดิม
+      if (!slice || e.newValue === null) return
+      try {
+        const value = JSON.parse(e.newValue)
+        setState((prev) => ({ ...prev, [slice[1]]: value }))
+      } catch {
+        /* ข้อมูลเสีย — ข้ามไป */
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const value = useMemo(() => ({ state, setState }), [state])
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
@@ -242,6 +323,7 @@ export function useAuth() {
 
 export function useCatalog() {
   const [products, setProducts] = useSlice('products', KEYS.products)
+  const [categoryRecords, setCategories] = useSlice('categories', KEYS.categories)
   const [banners, setBanners] = useSlice('banners', KEYS.banners)
   const [coupons] = useSlice('coupons', KEYS.coupons)
 
@@ -259,10 +341,17 @@ export function useCatalog() {
     [activeProducts],
   )
 
-  const categories = useMemo(
-    () => Array.from(new Set(activeProducts.map((p) => p.category))).sort(),
-    [activeProducts],
-  )
+  /** หมวดหมู่ทั้งหมดเรียงตามลำดับที่ตั้งไว้ — สำหรับหลังบ้าน */
+  const categoryList = useMemo(() => [...categoryRecords].sort(bySortOrder), [categoryRecords])
+
+  /**
+   * ชื่อหมวดหมู่ที่แสดงบนหน้าร้าน (เมนู ปุ่มลัด ตัวกรอง)
+   * เงื่อนไข: เปิดแสดง และมีสินค้าเปิดขายอยู่อย่างน้อย 1 ชิ้น — เรียงตามลำดับที่ตั้งไว้
+   */
+  const categories = useMemo(() => {
+    const inUse = new Set(activeProducts.map((p) => p.category))
+    return categoryList.filter((c) => c.active && inUse.has(c.name)).map((c) => c.name)
+  }, [categoryList, activeProducts])
 
   /**
    * แบนเนอร์ที่แสดงได้จริงบนหน้าแรก
@@ -272,7 +361,7 @@ export function useCatalog() {
     const today = todayKey()
     return banners
       .filter((b) => b.active && b.startDate <= today && today <= b.endDate)
-      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .sort(bySortOrder)
   }, [banners])
 
   const saveProduct = useCallback(
@@ -310,17 +399,50 @@ export function useCatalog() {
   /** สลับลำดับการแสดงแบนเนอร์ขึ้น/ลงหนึ่งขั้น */
   const moveBanner = useCallback(
     (id: string, direction: -1 | 1) => {
-      setBanners((prev) => {
-        const sorted = [...prev].sort((a, b) => a.sortOrder - b.sortOrder)
-        const index = sorted.findIndex((b) => b.id === id)
-        const target = index + direction
-        if (index < 0 || target < 0 || target >= sorted.length) return prev
-        ;[sorted[index], sorted[target]] = [sorted[target], sorted[index]]
-        // เขียนลำดับใหม่ให้เรียงต่อเนื่อง 1..n กันเลขซ้ำ
-        return sorted.map((b, i) => ({ ...b, sortOrder: i + 1 }))
-      })
+      setBanners((prev) => moveBySortOrder(prev, id, direction))
     },
     [setBanners],
+  )
+
+  /**
+   * บันทึกหมวดหมู่ ถ้าเป็นการเปลี่ยนชื่อ สินค้าทุกตัวในหมวดเดิมจะย้ายตามไปใช้ชื่อใหม่
+   * เพราะสินค้าอ้างอิงหมวดด้วยชื่อ
+   */
+  const saveCategory = useCallback(
+    (category: Category) => {
+      const previous = categoryRecords.find((c) => c.id === category.id)
+      if (previous && previous.name !== category.name) {
+        setProducts((prev) =>
+          prev.map((p) => (p.category === previous.name ? { ...p, category: category.name } : p)),
+        )
+      }
+      setCategories((prev) =>
+        prev.some((c) => c.id === category.id)
+          ? prev.map((c) => (c.id === category.id ? category : c))
+          : [...prev, category],
+      )
+    },
+    [categoryRecords, setCategories, setProducts],
+  )
+
+  /** ลบหมวดหมู่ — ถ้ามีสินค้าอยู่ต้องระบุหมวดปลายทางเพื่อย้ายสินค้าไปก่อน */
+  const deleteCategory = useCallback(
+    (id: string, moveProductsTo: string | null) => {
+      const target = categoryRecords.find((c) => c.id === id)
+      if (!target) return
+      if (moveProductsTo) {
+        setProducts((prev) =>
+          prev.map((p) => (p.category === target.name ? { ...p, category: moveProductsTo } : p)),
+        )
+      }
+      setCategories((prev) => prev.filter((c) => c.id !== id))
+    },
+    [categoryRecords, setCategories, setProducts],
+  )
+
+  const moveCategory = useCallback(
+    (id: string, direction: -1 | 1) => setCategories((prev) => moveBySortOrder(prev, id, direction)),
+    [setCategories],
   )
 
   /**
@@ -355,10 +477,89 @@ export function useCatalog() {
   )
 
   return {
-    products, activeProducts, recommendedProducts, categories, getProduct,
+    products, activeProducts, recommendedProducts, categories, categoryList, getProduct,
     banners, liveBanners, coupons,
     saveProduct, deleteProduct, saveBanner, deleteBanner, moveBanner, validateCoupon,
+    saveCategory, deleteCategory, moveCategory,
   }
+}
+
+// ── section หน้าแรก ─────────────────────────────────────────────────
+
+export function useHomeSections() {
+  const [sections, setSections] = useSlice('homeSections', KEYS.homeSections)
+  const { activeProducts, recommendedProducts, categoryList, coupons } = useCatalog()
+
+  /** ทุก section เรียงตามลำดับ — สำหรับหลังบ้าน */
+  const sorted = useMemo(() => [...sections].sort(bySortOrder), [sections])
+
+  /** section ที่เปิดใช้ เรียงตามลำดับ — สำหรับหน้าแรก */
+  const liveSections = useMemo(() => sorted.filter((s) => s.active), [sorted])
+
+  /** สินค้าที่ section ชนิด products จะแสดง (ตัดสินค้าที่ปิดขายหรือถูกลบออกแล้ว) */
+  const resolveProducts = useCallback(
+    (section: HomeSection): Product[] => {
+      let list: Product[]
+      switch (section.source) {
+        case 'recommended':
+          list = recommendedProducts
+          break
+        case 'sale':
+          // เรียงตามส่วนลดมากไปน้อย
+          list = activeProducts
+            .filter((p) => discountPercent(p.price, p.salePrice) > 0)
+            .sort((a, b) => discountPercent(b.price, b.salePrice) - discountPercent(a.price, a.salePrice))
+          break
+        case 'new':
+          list = [...activeProducts].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          break
+        case 'category': {
+          const name = categoryList.find((c) => c.id === section.categoryId)?.name
+          list = name ? activeProducts.filter((p) => p.category === name) : []
+          break
+        }
+        case 'manual':
+          list = section.productIds
+            .map((id) => activeProducts.find((p) => p.id === id))
+            .filter((p): p is Product => p !== undefined)
+          break
+      }
+      return list.slice(0, Math.max(1, section.limit))
+    },
+    [activeProducts, recommendedProducts, categoryList],
+  )
+
+  /** คูปองของ section ชนิด coupon — null ถ้าไม่พบ ปิดใช้ หรือหมดอายุแล้ว (section จะไม่แสดง) */
+  const resolveCoupon = useCallback(
+    (section: HomeSection): Coupon | null => {
+      const coupon = coupons.find((c) => c.code === section.couponCode)
+      return coupon && coupon.active && coupon.expiresAt >= todayKey() ? coupon : null
+    },
+    [coupons],
+  )
+
+  const saveSection = useCallback(
+    (section: HomeSection) => {
+      setSections((prev) =>
+        prev.some((s) => s.id === section.id)
+          ? prev.map((s) => (s.id === section.id ? section : s))
+          : [...prev, section],
+      )
+    },
+    [setSections],
+  )
+
+  const deleteSection = useCallback(
+    (id: string) => setSections((prev) => prev.filter((s) => s.id !== id)),
+    [setSections],
+  )
+
+  const moveSection = useCallback(
+    (id: string, direction: -1 | 1) => setSections((prev) => moveBySortOrder(prev, id, direction)),
+    [setSections],
+  )
+
+  return { sections: sorted, liveSections, resolveProducts, resolveCoupon, saveSection, deleteSection, moveSection }
 }
 
 // ── ตะกร้าสินค้า ────────────────────────────────────────────────────
@@ -606,6 +807,176 @@ export function useNotifications() {
   )
 
   return { notifications: sorted, unreadCount, push, markRead, markAllRead }
+}
+
+// ── แชท ─────────────────────────────────────────────────────────────
+
+/** เวลาที่บอทรอก่อนตอบ ให้ดูเป็นธรรมชาติและลูกค้าเห็นว่าข้อความส่งออกไปแล้ว */
+const BOT_DELAY_MS = 700
+
+export function useChat() {
+  const { state } = useApp()
+  const [chats, setChats] = useSlice('chats', KEYS.chats)
+  const [faqs, setFaqs] = useSlice('chatFaqs', KEYS.chatFaqs)
+  const [guest, setGuest] = useSlice('chatGuest', KEYS.chatGuest)
+
+  const currentUser = useMemo(
+    () => state.users.find((u) => u.id === state.currentUserId) ?? null,
+    [state.users, state.currentUserId],
+  )
+
+  /** เจ้าของห้องแชทของผู้ใช้ปัจจุบัน — สมาชิกใช้บัญชี ผู้เยี่ยมชมต้องกรอกชื่อก่อน (null = ยังไม่ได้กรอก) */
+  const owner = useMemo(() => {
+    if (currentUser) {
+      return { ownerId: currentUser.id, userId: currentUser.id, name: `${currentUser.firstName} ${currentUser.lastName}` }
+    }
+    return guest ? { ownerId: guest.id, userId: null, name: guest.name } : null
+  }, [currentUser, guest])
+
+  const myThread = useMemo(
+    () => (owner ? chats.find((t) => t.ownerId === owner.ownerId) ?? null : null),
+    [chats, owner],
+  )
+
+  /** ข้อความจากร้าน (แอดมินหรือบอท) ที่ลูกค้ายังไม่ได้เปิดอ่าน */
+  const customerUnread = useMemo(
+    () => myThread?.messages.filter((m) => m.from !== 'customer' && m.createdAt > myThread.customerReadAt).length ?? 0,
+    [myThread],
+  )
+
+  /** ห้องทั้งหมด ใหม่สุดก่อน — สำหรับหลังบ้าน */
+  const threads = useMemo(() => [...chats].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [chats])
+
+  /** ห้องที่มีข้อความลูกค้าที่แอดมินยังไม่ได้อ่าน */
+  const isUnreadByAdmin = useCallback(
+    (t: ChatThread) => t.messages.some((m) => m.from === 'customer' && m.createdAt > t.adminReadAt),
+    [],
+  )
+  const adminUnreadCount = useMemo(() => chats.filter(isUnreadByAdmin).length, [chats, isUnreadByAdmin])
+
+  const setGuestName = useCallback(
+    (name: string) => setGuest((prev) => ({ id: prev?.id ?? uid('g'), name: name.trim() })),
+    [setGuest],
+  )
+
+  /** ต่อข้อความท้ายห้องของเจ้าของที่ระบุ สร้างห้องใหม่ถ้ายังไม่มี */
+  const appendMessage = useCallback(
+    (
+      target: { ownerId: string; userId: string | null; name: string },
+      message: ChatMessage,
+      readBy: 'customer' | 'admin',
+    ) => {
+      setChats((prev) => {
+        const existing = prev.find((t) => t.ownerId === target.ownerId)
+        const readField = readBy === 'customer' ? 'customerReadAt' : 'adminReadAt'
+        if (!existing) {
+          const epoch = new Date(0).toISOString()
+          const thread: ChatThread = {
+            id: uid('ch'), ...target, messages: [message], updatedAt: message.createdAt,
+            customerReadAt: epoch, adminReadAt: epoch, [readField]: message.createdAt,
+          }
+          return [...prev, thread]
+        }
+        return prev.map((t) =>
+          t.id === existing.id
+            ? {
+                ...t,
+                // สมาชิกอาจแก้ชื่อในโปรไฟล์ ให้ห้องใช้ชื่อล่าสุดเสมอ
+                name: readBy === 'customer' ? target.name : t.name,
+                messages: [...t.messages, message],
+                updatedAt: message.createdAt,
+                [readField]: message.createdAt,
+              }
+            : t,
+        )
+      })
+    },
+    [setChats],
+  )
+
+  /**
+   * ลูกค้าส่งข้อความ แล้วบอทตอบตามหลังเล็กน้อย
+   * คืน Promise ที่ resolve เมื่อบอทตอบเสร็จ (หรือไม่ต้องตอบ) ให้หน้าต่างแชทแสดงสถานะกำลังพิมพ์
+   */
+  const sendCustomerMessage = useCallback(
+    (text: string): Promise<void> => {
+      const body = text.trim()
+      if (!owner || !body) return Promise.resolve()
+      const history = myThread?.messages ?? []
+      appendMessage(owner, { id: uid('m'), from: 'customer', text: body, createdAt: new Date().toISOString() }, 'customer')
+
+      const reply = botReply(body, faqs, history)
+      if (!reply) return Promise.resolve()
+      return new Promise((resolve) => {
+        window.setTimeout(() => {
+          // คำตอบบอทมาทันทีหลังลูกค้าส่งข้อความเอง จึงนับว่าลูกค้าอ่านแล้ว ไม่ขึ้นเป็นข้อความค้างอ่าน
+          appendMessage(owner, { id: uid('m'), from: 'bot', text: reply, createdAt: new Date().toISOString() }, 'customer')
+          resolve()
+        }, BOT_DELAY_MS)
+      })
+    },
+    [owner, myThread, faqs, appendMessage],
+  )
+
+  const markCustomerRead = useCallback(() => {
+    if (!myThread || customerUnread === 0) return
+    const now = new Date().toISOString()
+    setChats((prev) => prev.map((t) => (t.id === myThread.id ? { ...t, customerReadAt: now } : t)))
+  }, [myThread, customerUnread, setChats])
+
+  // ── ฝั่งแอดมิน ──
+  const sendAdminMessage = useCallback(
+    (threadId: string, text: string) => {
+      const body = text.trim()
+      const thread = chats.find((t) => t.id === threadId)
+      if (!thread || !body) return
+      appendMessage(thread, { id: uid('m'), from: 'admin', text: body, createdAt: new Date().toISOString() }, 'admin')
+    },
+    [chats, appendMessage],
+  )
+
+  const markAdminRead = useCallback(
+    (threadId: string) => {
+      const thread = chats.find((t) => t.id === threadId)
+      if (!thread || !isUnreadByAdmin(thread)) return
+      const now = new Date().toISOString()
+      setChats((prev) => prev.map((t) => (t.id === threadId ? { ...t, adminReadAt: now } : t)))
+    },
+    [chats, isUnreadByAdmin, setChats],
+  )
+
+  const deleteThread = useCallback(
+    (threadId: string) => setChats((prev) => prev.filter((t) => t.id !== threadId)),
+    [setChats],
+  )
+
+  // ── คำตอบอัตโนมัติ ──
+  const sortedFaqs = useMemo(() => [...faqs].sort(bySortOrder), [faqs])
+
+  const saveFaq = useCallback(
+    (faq: ChatFaq) => {
+      setFaqs((prev) =>
+        prev.some((f) => f.id === faq.id) ? prev.map((f) => (f.id === faq.id ? faq : f)) : [...prev, faq],
+      )
+    },
+    [setFaqs],
+  )
+
+  const deleteFaq = useCallback((id: string) => setFaqs((prev) => prev.filter((f) => f.id !== id)), [setFaqs])
+
+  const moveFaq = useCallback(
+    (id: string, direction: -1 | 1) => setFaqs((prev) => moveBySortOrder(prev, id, direction)),
+    [setFaqs],
+  )
+
+  return {
+    // ลูกค้า
+    owner, guest, myThread, customerUnread, setGuestName, sendCustomerMessage, markCustomerRead,
+    // แอดมิน
+    threads, adminUnreadCount, isUnreadByAdmin, sendAdminMessage, markAdminRead, deleteThread,
+    // คำตอบอัตโนมัติ
+    faqs: sortedFaqs, saveFaq, deleteFaq, moveFaq,
+  }
 }
 
 // ── ยูทิลิตี้สำหรับหน้า admin ────────────────────────────────────────
